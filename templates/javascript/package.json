@@ -1,0 +1,33 @@
+{
+  "name": "javascript-ai-harness",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Starter harness for JS projects (node or browser) with AI guardrails.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev:node": "node src/node/index.js",
+    "dev:browser": "npx -y serve -l 4173 .",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage.enabled true && node scripts/check-coverage.mjs",
+    "security": "npm audit --audit-level=high",
+    "verify": "npm run lint && npm run test",
+    "quality": "npm run verify && npm run coverage"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.39.1",
+    "globals": "^16.4.0",
+    "happy-dom": "^20.0.10",
+    "lefthook": "^1.13.6",
+    "prettier": "^3.6.2",
+    "vitest": "^3.2.4"
+  }
+}

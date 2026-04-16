@@ -1,0 +1,58 @@
+version: 3
+workdir: .
+allow:
+  ignoreNotFoundComponents: true
+
+components:
+  cmd:
+    in:
+      - cmd/**
+  domain:
+    in:
+      - internal/domain/**
+  service:
+    in:
+      - internal/service/**
+  transport:
+    in:
+      - internal/transport/**
+  platform:
+    in:
+      - internal/platform/**
+  test:
+    in:
+      - test/**
+
+commonComponents:
+  - platform
+
+deps:
+  cmd:
+    mayDependOn:
+      - cmd
+      - service
+      - platform
+    anyVendorDeps: true
+  domain:
+    mayDependOn:
+      - domain
+    anyVendorDeps: false
+  service:
+    mayDependOn:
+      - service
+      - domain
+      - platform
+    anyVendorDeps: true
+  transport:
+    mayDependOn:
+      - transport
+      - service
+      - domain
+      - platform
+    anyVendorDeps: true
+  platform:
+    anyProjectDeps: true
+    anyVendorDeps: true
+  test:
+    anyProjectDeps: true
+    anyVendorDeps: true

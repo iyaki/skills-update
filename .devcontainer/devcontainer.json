@@ -1,0 +1,94 @@
+{
+	"name": "Some project",
+	"image": "mcr.microsoft.com/devcontainers/universal:5-linux",
+
+	"runArgs": [
+		"--userns=keep-id", // For podman users, to avoid permission issues with bind mountson on rootless mode.
+		"--env-file", "${localWorkspaceFolder}/.env"
+		// "--memory", "8g"
+	],
+
+	"mounts": [
+		// OpenCode config and data
+		{ "source": "${localEnv:HOME}/.opencode", "target": "/home/codespace/.local/share/opencode", "type": "bind" },
+		{ "source": "${localEnv:HOME}/.local/state/opencode", "target": "/home/codespace/.local/state/opencode", "type": "bind" },
+		// Global vercel skills config
+		{ "source": "${localWorkspaceFolder}/.agents/.skill-lock.json", "target": "/home/codespace/.agents/.skill-lock.json", "type": "bind" },
+		// GitHub CLI config
+		{ "source": "${localEnv:HOME}/.config/gh/", "target": "/home/codespace/.config/gh/", "type": "bind" },
+		// Override Git LFS artifacts script to avoid conflicts with lefthook pre configured git hooks.
+		{ "source": "${localWorkspaceFolder}/.devcontainer/pull-git-lfs-artifacts-override.sh", "target": "/usr/local/share/pull-git-lfs-artifacts.sh", "type": "bind" }
+	],
+
+	"containerEnv": {
+		"XDG_CONFIG_HOME": "/home/codespace/.config",
+    "XDG_CACHE_HOME": "/home/codespace/.cache",
+    "XDG_DATA_HOME": "/home/codespace/.local/share",
+    "XDG_STATE_HOME": "/home/codespace/.local/state"
+	},
+
+	"remoteEnv": {
+		// https://opencode.ai/docs/cli/#environment-variables
+		"OPENCODE_EXPERIMENTAL_LSP_TOOL": "true",
+		"OPENCODE_EXPERIMENTAL_LSP_TY": "true",
+		"OPENCODE_ENABLE_EXPERIMENTAL_MODELS": "true",
+		"OPENCODE_DISABLE_CLAUDE_CODE": "true",
+		"OPENCODE_DISABLE_FILETIME_CHECK": "true",
+		"OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER": "true",
+		"OPENCODE_EXPERIMENTAL_MARKDOWN": "true",
+		"OPENCODE_EXPERIMENTAL_PLAN_MODE": "true",
+		"OPENCODE_EXPERIMENTAL_ICON_DISCOVERY": "true",
+		"OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS": "300000",
+		// For usage with /edit command from OpenCode - https://opencode.ai/docs/tui/#editor-setup
+		"EDITOR": "code --wait",
+		"VISUAL": "code --wait"
+	},
+
+	"features": {
+		// "ghcr.io/devcontainers/features/common-utils:": {
+		// 	"installZsh": false,
+		// 	"installOhMyZsh": false,
+		// 	"installOhMyZshConfig": false,
+		// 	"username": "automatic"
+		// },
+		"ghcr.io/devcontainers-extra/features/shfmt:": {},
+		"ghcr.io/devcontainers-extra/features/npm-packages:": {
+			"packages": "agent-browser,repomix"
+		},
+		// "ghcr.io/devcontainers-extra/features/uv:": {},
+		"ghcr.io/devcontainers-extra/features/opencode:": {},
+		"ghcr.io/iyaki/devcontainer-features/ralph:": {},
+		"ghcr.io/iyaki/devcontainer-features/lefthook:": {}
+	},
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"sst-dev.opencode",
+				"editorconfig.editorconfig",
+				"nhoizey.gremlins"
+			]
+		}
+	},
+
+	"initializeCommand": "${localWorkspaceFolder}/.devcontainer/setup.sh",
+	"postCreateCommand": {
+		"Setup agent browser": "agent-browser install --with-deps",
+		"Setup lefthook": "lefthook install"
+		// "Pull scrapling image": "docker pull pyd4vinci/scrapling"
+	},
+	"postStartCommand": {
+		"Refresh opencode available models": "opencode models --refresh"
+	},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [
+		// Add your own ports here
+		4096
+	],
+	"portsAttributes": {
+		"4096": {
+			"label": "Default OpenCode server"
+		}
+	}
+}

@@ -1,0 +1,10 @@
+https://github.com/iyaki/ralph?tab=readme-ov-file#flags-env-vars-and-toml-keys
+
+max-iterations = 25
+specs-dir = "specs"
+
+log-file = "./logs/ralph.log"
+no-log = false
+
+agent = "opencode"
+agent-mode = "ralph"

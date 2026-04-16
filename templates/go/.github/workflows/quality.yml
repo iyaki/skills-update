@@ -1,0 +1,57 @@
+name: quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+      - name: test
+        run: make test
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+      - name: coverage gate
+        run: make coverage
+
+  arch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+      - name: install go-arch-lint
+        run: go install github.com/fe3dback/go-arch-lint@latest
+      - name: arch
+        run: make arch
+
+  mutation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+      - name: install gremlins
+        run: go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+      - name: mutation
+        run: make mutation

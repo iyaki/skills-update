@@ -1,0 +1,62 @@
+name: test templates
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/test-templates.yml
+      - scripts/stack-setup.sh
+      - scripts/test-template-stack.sh
+      - templates/**
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/test-templates.yml
+      - scripts/stack-setup.sh
+      - scripts/test-template-stack.sh
+      - templates/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    name: smoke test (${{ matrix.stack }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stack:
+          - go
+          - javascript
+          - php
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        if: matrix.stack == 'go'
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.24'
+
+      - name: Setup Node.js
+        if: matrix.stack == 'javascript'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: templates/javascript/package-lock.json
+
+      - name: Setup PHP
+        if: matrix.stack == 'php'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+
+      - name: Run template smoke test
+        run: bash scripts/test-template-stack.sh "${{ matrix.stack }}"

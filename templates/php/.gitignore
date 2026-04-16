@@ -1,0 +1,41 @@
+# PHP Dependencies
+/vendor/
+composer.lock
+composer.phar
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*~
+.DS_Store
+
+# Testing
+/coverage/
+.phpunit.cache/
+.pest/
+infection.log
+mutations.json
+html/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build artifacts
+/build/
+/dist/
+/bin/
+
+# PHP-CS-Fixer
+.php_cs.cache
+.php-cs-fixer.cache
+
+# Rector
+.rector.cache
+
+# Node modules (if using Node for frontend assets)
+/node_modules/

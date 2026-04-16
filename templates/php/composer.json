@@ -1,0 +1,60 @@
+{
+  "name": "template-base/php-ai-harness",
+  "description": "Starter harness for PHP projects with AI guardrails.",
+  "license": "proprietary",
+  "require-dev": {
+    "pestphp/pest": "^4.4",
+    "phpstan/phpstan": "^1.12",
+    "rector/rector": "^1.2",
+    "carthage-software/mago": "^1.18",
+    "shipmonk/composer-dependency-analyser": "^1.8"
+  },
+  "config": {
+    "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        },
+        "sort-packages": true
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "format": "vendor/bin/mago format",
+    "format:check": "vendor/bin/mago format --check",
+    "lint": "vendor/bin/mago lint",
+    "lint:fix": "vendor/bin/mago lint --fix",
+    "analyze": "vendor/bin/mago analyze",
+    "phpstan": "vendor/bin/phpstan analyse",
+    "deps:analyze": "vendor/bin/composer-dependency-analyser",
+    "test": "@php vendor/bin/pest --configuration=pest.xml",
+    "test:watch": "@php vendor/bin/pest --configuration=pest.xml --watch",
+    "test:coverage": "@php vendor/bin/pest --configuration=pest.xml --coverage --coverage-html=coverage --coverage-report=text",
+    "mutation": "@php vendor/bin/pest --configuration=pest.xml --mutate --min-covered-msi=90 --min-msi=90",
+    "mutation:full": "@php vendor/bin/pest --configuration=pest.xml --mutate --min-covered-msi=90 --min-msi=90 --no-progress",
+    "rector": "vendor/bin/rector process",
+    "validate:composer": "composer validate --strict --no-check-lock",
+    "validate:autoload": "composer dump-autoload --dev --optimize --strict-psr --strict-ambiguous",
+    "verify": [
+      "@lint",
+      "@test"
+    ],
+    "quality": [
+      "@verify",
+      "@analyze",
+      "@phpstan",
+      "@deps:analyze",
+      "@test:coverage",
+      "@mutation",
+      "@validate:composer",
+      "@validate:autoload"
+    ]
+  }
+}
