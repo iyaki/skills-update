@@ -1,5 +1,5 @@
 {
-	"name": "Some project",
+	"name": "Skills Update",
 	"image": "mcr.microsoft.com/devcontainers/universal:5-linux",
 
 	"runArgs": [
