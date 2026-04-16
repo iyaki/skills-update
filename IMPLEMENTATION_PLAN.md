@@ -125,6 +125,12 @@
 - [ ] Enforce blocked-path fail-closed behavior before write stages.
 - [ ] Exclude ignored paths (including `.agents/.skill-lock.json`) from write-stage candidates without failing run.
 - [ ] Emit `changed` and `updated-files` from allowed set only.
+- [x] Execute `update-command` non-interactively in `working-directory`.
+- [x] Collect changed files from git diff in workspace-relative format.
+- [x] Partition files into `allowed`, `ignored`, `blocked` using `add-paths` and `ignore-paths`.
+- [x] Enforce blocked-path fail-closed behavior before write stages.
+- [x] Exclude ignored paths (including `.agents/.skill-lock.json`) from write-stage candidates without failing run.
+- [x] Emit `changed` and `updated-files` from allowed set only.
 
 **Definition of Done**
 
@@ -281,21 +287,23 @@
 - 2026-04-16: bash scripts/test-run-skill-update.sh - pass after adding regression for omitted optional outputs (`commit-sha`, `pull-request-number`, `pull-request-url`) when not created.
 - 2026-04-16: bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh - pass.
 - 2026-04-16: bash scripts/test-run-skill-update.sh - pass after adding regression coverage for configurable `commit-message` behavior in commit stage.
+- 2026-04-16: bash scripts/test-run-skill-update.sh - pass after adding path policy normalization coverage for `./` prefixed allowlist entries and traversal rejection in `add-paths`.
+- 2026-04-16: bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh - pass.
 
 ## Summary
 
-| Phase                                         | Status      | Completion |
-| --------------------------------------------- | ----------- | ---------- |
-| Phase 1 - Baseline and Spec/ADR Alignment     | Complete    | 100%       |
-| Phase 2 - Marketplace Action Contract Surface | Complete    | 100%       |
-| Phase 3 - Runtime Orchestration               | Complete    | 100%       |
-| Phase 4 - Update Feature                      | Not started | 0%         |
-| Phase 5 - Commit Feature                      | Partial     | 60%        |
-| Phase 6 - Pull Request Feature                | Complete    | 100%       |
-| Phase 7 - Release and Verification Pipeline   | Complete    | 100%       |
-| Phase 8 - Cross-Repo Workflow Hardening       | Partial     | 83%        |
+| Phase                                         | Status   | Completion |
+| --------------------------------------------- | -------- | ---------- |
+| Phase 1 - Baseline and Spec/ADR Alignment     | Complete | 100%       |
+| Phase 2 - Marketplace Action Contract Surface | Complete | 100%       |
+| Phase 3 - Runtime Orchestration               | Complete | 100%       |
+| Phase 4 - Update Feature                      | Complete | 100%       |
+| Phase 5 - Commit Feature                      | Partial  | 60%        |
+| Phase 6 - Pull Request Feature                | Complete | 100%       |
+| Phase 7 - Release and Verification Pipeline   | Complete | 100%       |
+| Phase 8 - Cross-Repo Workflow Hardening       | Partial  | 83%        |
 
-**Remaining effort:** 2 core action phases and 1 hardening phase are unfinished.
+**Remaining effort:** 1 core action phase and 1 hardening phase are unfinished.
 
 ## Known Existing Work
 
