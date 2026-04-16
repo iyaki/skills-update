@@ -1,0 +1,63 @@
+name: smoke marketplace action
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/smoke-marketplace-action.yml
+      - action.yml
+      - scripts/run-skill-update.sh
+      - scripts/test-run-skill-update.sh
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/smoke-marketplace-action.yml
+      - action.yml
+      - scripts/run-skill-update.sh
+      - scripts/test-run-skill-update.sh
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: Scenario selector for focused smoke runs.
+        required: false
+        type: choice
+        default: all
+        options:
+          - all
+          - update-only
+          - commit-enabled
+          - pr-enabled
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run smoke scenarios
+        env:
+          SCENARIO: ${{ github.event.inputs.scenario || 'all' }}
+        run: |
+          set -euo pipefail
+          case "$SCENARIO" in
+            all)
+              bash scripts/test-run-skill-update.sh
+              ;;
+            update-only)
+              bash scripts/test-run-skill-update.sh
+              ;;
+            commit-enabled)
+              bash scripts/test-run-skill-update.sh
+              ;;
+            pr-enabled)
+              bash scripts/test-run-skill-update.sh
+              ;;
+            *)
+              echo "Unsupported scenario: $SCENARIO" >&2
+              exit 1
+              ;;
+          esac
