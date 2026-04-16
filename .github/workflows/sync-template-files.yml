@@ -131,6 +131,11 @@ jobs:
           if [[ ${#conflict_targets[@]} -gt 0 ]]; then
             echo "Merge conflicts detected while syncing template files:"
             printf ' - %s\n' "${conflict_targets[@]}"
+            {
+              echo "conflict-targets<<EOF"
+              printf '%s\n' "${conflict_targets[@]}"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
             exit 1
           fi
 
@@ -176,3 +181,18 @@ jobs:
             automation
           add-paths: |
             templates/**
+
+      - name: Sync diagnostics
+        if: failure()
+        env:
+          CONFLICT_TARGETS: ${{ steps.sync.outputs['conflict-targets'] }}
+        run: |
+          set -euo pipefail
+          echo "### Sync diagnostics" >> "$GITHUB_STEP_SUMMARY"
+          echo "Verification and diagnostics:" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -n "$CONFLICT_TARGETS" ]]; then
+            echo "Conflicted template targets:" >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$CONFLICT_TARGETS" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No conflict-targets output was emitted." >> "$GITHUB_STEP_SUMMARY"
+          fi

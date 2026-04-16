@@ -108,6 +108,11 @@ Behavior:
 - Output: creates and pushes a `sync/*` branch with the updates, then opens a PR to `main`.
 - Safety: if no effective changes are produced, no PR is created; if a merge conflict appears, the workflow fails for manual resolution.
 
+Verification and diagnostics:
+
+- On conflict failure, the workflow emits `conflict-targets` output and writes a `Sync diagnostics` section to the step summary.
+- To inspect failed runs quickly, use `gh run view <run-id> --log-failed`.
+
 ## Sensible defaults checklist
 
 This template intentionally defaults to:
