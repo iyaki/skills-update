@@ -1,6 +1,6 @@
 # Implementation Plan (Whole System)
 
-**Status:** Action Contract + Runtime + PR Orchestration Implemented (5/8 phases complete, 1/8 partial)
+**Status:** Action Contract + Runtime + PR Orchestration Implemented (7/8 phases complete, 1/8 partial)
 
 **Last Updated:** 2026-04-16
 
@@ -54,7 +54,7 @@
 
 **Goal:** Implement action entrypoint and I/O contract defined in overview spec.
 
-**Status:** Partial
+**Status:** Complete
 
 **Paths:** `action.yml` (missing), `README.md` (consumer usage section)
 
@@ -155,11 +155,11 @@
 
 **Reference pattern:** existing repository git hygiene constraints in `opencode.jsonc`
 
-- [ ] Run commit stage only when `create-commit=true` and allowed changes exist.
+- [x] Run commit stage only when `create-commit=true` and allowed changes exist.
 - [x] Stage only allowlisted files produced by update policy.
 - [x] Create exactly one commit with configurable `commit-message`.
 - [x] Emit `commit-created` and `commit-sha` only when commit exists.
-- [ ] Skip commit stage cleanly when disabled or no allowed changes.
+- [x] Skip commit stage cleanly when disabled or no allowed changes.
 
 **Definition of Done**
 
@@ -289,6 +289,7 @@
 - 2026-04-16: bash scripts/test-run-skill-update.sh - pass after adding regression coverage for configurable `commit-message` behavior in commit stage.
 - 2026-04-16: bash scripts/test-run-skill-update.sh - pass after adding path policy normalization coverage for `./` prefixed allowlist entries and traversal rejection in `add-paths`.
 - 2026-04-16: bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh - pass.
+- 2026-04-16: `bash scripts/test-run-skill-update.sh` - pass after adding regression coverage for `create-commit=false` with allowlisted changes (commit stage skip behavior).
 
 ## Summary
 
@@ -298,12 +299,12 @@
 | Phase 2 - Marketplace Action Contract Surface | Complete | 100%       |
 | Phase 3 - Runtime Orchestration               | Complete | 100%       |
 | Phase 4 - Update Feature                      | Complete | 100%       |
-| Phase 5 - Commit Feature                      | Partial  | 60%        |
+| Phase 5 - Commit Feature                      | Complete | 100%       |
 | Phase 6 - Pull Request Feature                | Complete | 100%       |
 | Phase 7 - Release and Verification Pipeline   | Complete | 100%       |
 | Phase 8 - Cross-Repo Workflow Hardening       | Partial  | 83%        |
 
-**Remaining effort:** 1 core action phase and 1 hardening phase are unfinished.
+**Remaining effort:** 1 hardening phase is unfinished.
 
 ## Known Existing Work
 
