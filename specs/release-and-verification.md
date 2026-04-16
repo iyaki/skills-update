@@ -29,6 +29,12 @@ Status: Proposed
 - Out of scope:
   - Detailed feature internals.
 
+### V1 Decisions (Frozen)
+
+- Signed tags are not mandatory for v1 releases.
+- Immutable semver tags plus mutable major alias (`v1`) remain required.
+- Release verification for v1 focuses on contract stability and smoke checks.
+
 ## Architecture
 
 ### Module/package layout (tree format)
@@ -210,7 +216,6 @@ Release metadata example:
 
 ## Open Questions / Risks
 
-- Should signed tags be mandatory in v1?
 - Should contract-diff summaries be generated automatically in release notes?
 
 ## Verifications

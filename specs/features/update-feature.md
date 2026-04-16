@@ -32,6 +32,13 @@ Status: Proposed
 - Out of scope:
   - Branch writes and pull request API operations.
 
+### V1 Decisions (Frozen)
+
+- The update stage executes in every run.
+- Ignored paths are excluded from updates that advance to write stages and do not fail the run.
+- Blocked-path detection fails the run and prevents commit/pull request stages.
+- Strict-ignore failure mode is out of scope for v1.
+
 ## Architecture
 
 ### Module/package layout (tree format)
@@ -252,7 +259,6 @@ Response example:
 
 ## Open Questions / Risks
 
-- Should strict mode fail when ignored paths are changed?
 - Should update stage expose blocked paths as structured JSON output?
 - Should retries be added for transient network failures when downloading CLI package?
 

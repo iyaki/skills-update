@@ -7,7 +7,6 @@ Status: Proposed
 ### Purpose
 
 - Define the optional pull request stage that opens or updates a single rolling pull request.
-- Define the optional pull request stage that opens or updates a single rolling pull request.
 - Specify default behavior where this feature can generate the commit when needed.
 - Keep review and merge as explicit human-controlled steps.
 
@@ -32,6 +31,12 @@ Status: Proposed
 - Out of scope:
   - CODEOWNERS/review policy configuration.
   - Branch protection policy administration.
+
+### V1 Decisions (Frozen)
+
+- `create-pr=true` with missing prior commit uses pull request-stage commit generation by default (`pr-generate-commit=true`).
+- Pull request stage remains optional (`create-pr` toggle).
+- Single rolling pull request strategy is default; split pull request strategy is out of scope for v1.
 
 ## Architecture
 
@@ -198,7 +203,6 @@ Response example:
 
 ## Client SDK Design
 
-- Consumers generally keep pull request stage enabled for Dependabot-like behavior.
 - Consumers generally keep pull request stage enabled for Dependabot-like behavior.
 - `pr-generate-commit` defaults to true to keep setup simple.
 - Advanced workflows may disable pull request stage and consume update/commit outputs only.

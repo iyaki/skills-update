@@ -15,6 +15,10 @@ Design docs and technical specifications
 - [Overview and Contract](overview-and-contract.md) - Status: Proposed
 - [Release and Verification](release-and-verification.md) - Status: Proposed
 
+## Architecture Decisions (ADR)
+
+- [ADR Index](../adr/README.md)
+
 ## Feature Specs
 
 - [Update Feature](features/update-feature.md) - Status: Proposed

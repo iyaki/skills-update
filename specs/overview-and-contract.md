@@ -31,7 +31,16 @@ Status: Proposed
   - Shared input/output definitions.
   - Shared security and permission baseline.
 - Out of scope:
-- Detailed update, commit, or pull request implementation rules (defined in dedicated specs).
+  - Detailed update, commit, or pull request implementation rules (defined in dedicated specs).
+
+### V1 Decisions (Frozen)
+
+- Pull request stage may generate a commit by default when `create-pr=true` and no prior commit exists.
+- Ignored paths (including `.agents/.skill-lock.json`) are excluded from commit scope and do not fail the run.
+- Blocked paths fail the run before commit and pull request stages.
+- Signed tags are not mandatory in v1 release policy.
+- v1 excludes strict-ignore mode, phase-trace JSON outputs, advanced retry policy, and split pull request strategy.
+- Canonical decision records are maintained in `adr/`.
 
 ## Architecture
 
