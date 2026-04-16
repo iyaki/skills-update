@@ -259,8 +259,8 @@ Response example:
 
 ## Open Questions / Risks
 
-- Should update stage expose blocked paths as structured JSON output?
-- Should retries be added for transient network failures when downloading CLI package?
+- Structured blocked-path JSON output is deferred to a future version.
+- Advanced retry strategy for transient CLI download/network failures is deferred to a future version.
 
 ## Verifications
 

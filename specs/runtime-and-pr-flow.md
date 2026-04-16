@@ -218,8 +218,8 @@ Response example:
 
 ## Open Questions / Risks
 
-- Should runtime support soft-fail mode for optional phases in future releases?
-- Should runtime emit machine-readable phase traces as official outputs?
+- Soft-fail mode for optional phases is deferred to a future release; v1 remains fail-fast.
+- Machine-readable phase traces as official outputs are deferred to a future release.
 
 ## Verifications
 

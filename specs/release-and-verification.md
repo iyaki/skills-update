@@ -216,7 +216,7 @@ Release metadata example:
 
 ## Open Questions / Risks
 
-- Should contract-diff summaries be generated automatically in release notes?
+- Automated contract-diff summaries in release notes are deferred to a future version.
 
 ## Verifications
 

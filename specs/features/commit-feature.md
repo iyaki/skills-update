@@ -208,8 +208,8 @@ Response example:
 
 ## Open Questions / Risks
 
-- Should commit stage allow signing options in v1?
-- Should commit stage expose list of staged files as output?
+- Commit signing options are deferred to a future version.
+- Exposing staged file lists as dedicated commit-stage output is deferred to a future version.
 
 ## Verifications
 

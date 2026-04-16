@@ -263,9 +263,9 @@ Response example:
 
 ## Open Questions / Risks
 
-- Should `create-commit=false` and `create-pr=true` remain supported long-term?
-- Should `pr-generate-commit` stay default-true for all future majors?
-- Should outputs include explicit stage-level error codes?
+- `create-commit=false` with `create-pr=true` is accepted for v1 and may be revisited in a future major.
+- `pr-generate-commit=true` is the accepted v1 default and may be reevaluated from adoption signals.
+- Stage-level machine-readable error codes are deferred to a future version.
 
 ## Verifications
 

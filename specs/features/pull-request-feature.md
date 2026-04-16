@@ -240,9 +240,9 @@ Response example:
 
 ## Open Questions / Risks
 
-- Should pull request stage allow custom branch naming templates in v1?
-- Should commit generation in pull request stage be skippable only when explicit commit stage is enabled?
-- Should pull request body include blocked/ignored path diagnostics?
+- Custom branch naming templates beyond `pr-branch` are deferred to a future version.
+- Pull request-stage commit generation remains independently configurable in v1 (`pr-generate-commit`).
+- Blocked/ignored-path diagnostics in pull request body are deferred to a future version.
 
 ## Verifications
 
