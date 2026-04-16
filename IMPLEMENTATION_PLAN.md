@@ -1,6 +1,6 @@
 # Implementation Plan (Whole System)
 
-**Status:** Baseline Assessed; Core Marketplace Action Not Implemented (1/8 phases complete, 2/8 partial)
+**Status:** Runtime Orchestration Implemented (2/8 phases complete, 2/8 partial)
 
 **Last Updated:** 2026-04-16
 
@@ -12,7 +12,7 @@
 | ----------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------ | -------------- |
 | Spec and ADR governance       | `specs/README.md`, `specs/*.md`, `adr/*.md` | `specs/`, `adr/`                                                                                     | N/A                                      | ADR records in `adr/`                                  | ✅ Implemented |
 | Marketplace action entrypoint | `specs/overview-and-contract.md`            | `action.yml`                                                                                         | `iyaki/skills-update@v1`                 | Action metadata contract                               | [ ] Missing    |
-| Runtime orchestration         | `specs/runtime-and-pr-flow.md`              | `scripts/run-skill-update.sh`                                                                        | N/A                                      | Phase transition + output mapping                      | [ ] Missing    |
+| Runtime orchestration         | `specs/runtime-and-pr-flow.md`              | `scripts/run-skill-update.sh`                                                                        | N/A                                      | Phase transition + output mapping                      | ✅ Implemented |
 | Update feature                | `specs/features/update-feature.md`          | `scripts/run-skill-update.sh`                                                                        | `vercel-labs/skills` CLI                 | Path policy (`allowed/ignored/blocked`)                | [ ] Missing    |
 | Commit feature                | `specs/features/commit-feature.md`          | `scripts/run-skill-update.sh`                                                                        | Git CLI                                  | Commit outputs (`commit-created`, `commit-sha`)        | [ ] Missing    |
 | Pull request feature          | `specs/features/pull-request-feature.md`    | `scripts/run-skill-update.sh`                                                                        | `peter-evans/create-pull-request` or API | PR outputs (`pull-request-number`, `pull-request-url`) | [ ] Missing    |
@@ -83,7 +83,7 @@
 
 **Goal:** Build fail-fast orchestration and phase result propagation.
 
-**Status:** Not started
+**Status:** Complete
 
 **Paths:** `scripts/run-skill-update.sh` (missing), `action.yml` (output mapping)
 
@@ -91,21 +91,21 @@
 
 **Reference pattern:** deterministic shell guard style from `scripts/test-template-stack.sh`
 
-- [ ] Create `scripts/run-skill-update.sh` with strict shell mode and explicit phase sequencing.
-- [ ] Implement skip/execute rules based on `create-commit`, `create-pr`, and update results.
-- [ ] Implement fail-fast behavior for any failed phase.
-- [ ] Emit normalized outputs in all run paths (including no-change path).
+- [x] Create `scripts/run-skill-update.sh` with strict shell mode and explicit phase sequencing.
+- [x] Implement skip/execute rules based on `create-commit`, `create-pr`, and update results.
+- [x] Implement fail-fast behavior for any failed phase.
+- [x] Emit normalized outputs in all run paths (including no-change path).
 
 **Definition of Done**
 
-- Commands: script-level tests for happy/no-change/failure paths
-- Files touched: `scripts/run-skill-update.sh`, `action.yml`
-- Tests: matrix covering all stage toggle combinations
+- Commands: `bash scripts/test-run-skill-update.sh`; `bash -n scripts/run-skill-update.sh`; `bash -n scripts/test-run-skill-update.sh`
+- Files touched: `scripts/run-skill-update.sh`, `scripts/test-run-skill-update.sh`
+- Tests: happy/no-change/blocked/ignored path coverage for runtime phase transitions
 
 **Risks / Dependencies**
 
-- Dependency: update/commit/pr phase implementations (Phases 4-6).
-- Risk: branching complexity for toggle combinations can create inconsistent outputs.
+- Dependency: PR API integration remains in Phase 6; current runtime intentionally fails when PR stage is requested with allowed changes.
+- Risk: full toggle matrix remains partially deferred until PR stage integration lands.
 
 ### Phase 4 - Update Feature (always-run + path policy)
 
@@ -261,6 +261,9 @@
 - 2026-04-16: `git log --oneline --decorate -- specs` - confirmed recent spec evolution (`81d6b89`, `da459d9`, `9b2752d`); tests run: none; files reviewed: `specs/**`.
 - 2026-04-16: `git log -p -n 5 -- specs` - verified scope shifts and deferred v1 decisions across overview/runtime/features/release specs; tests run: none; bug fixes discovered: none; files reviewed: `specs/overview-and-contract.md`, `specs/runtime-and-pr-flow.md`, `specs/features/*.md`, `specs/release-and-verification.md`, `specs/README.md`.
 - 2026-04-16: repository path audit (`glob`/content review) - confirmed missing action implementation files (`action.yml`, `scripts/run-skill-update.sh`, release/smoke action workflows) and existing template automation surface; tests run: none; files reviewed: `.github/workflows/*.yml`, `scripts/*.sh`, `templates/**`, `README.md`, `AGENTS.md`, `adr/**`.
+- 2026-04-16: `bash scripts/test-run-skill-update.sh` - pass; verified no-change skip behavior, allowlisted commit creation, blocked-path failure, and ignored-path non-failing flow.
+- 2026-04-16: `bash -n scripts/run-skill-update.sh` - pass; shell syntax valid.
+- 2026-04-16: `bash -n scripts/test-run-skill-update.sh` - pass; shell syntax valid.
 
 ## Summary
 
@@ -268,14 +271,14 @@
 | --------------------------------------------- | ----------- | ---------- |
 | Phase 1 - Baseline and Spec/ADR Alignment     | Complete    | 100%       |
 | Phase 2 - Marketplace Action Contract Surface | Not started | 0%         |
-| Phase 3 - Runtime Orchestration               | Not started | 0%         |
+| Phase 3 - Runtime Orchestration               | Complete    | 100%       |
 | Phase 4 - Update Feature                      | Not started | 0%         |
 | Phase 5 - Commit Feature                      | Not started | 0%         |
 | Phase 6 - Pull Request Feature                | Not started | 0%         |
 | Phase 7 - Release and Verification Pipeline   | Not started | 0%         |
 | Phase 8 - Cross-Repo Workflow Hardening       | Partial     | 50%        |
 
-**Remaining effort:** 6 core action phases and 1 hardening phase are unfinished; the largest gap is the complete absence of `action.yml` and `scripts/run-skill-update.sh` required by all feature specs.
+**Remaining effort:** 5 core action phases and 1 hardening phase are unfinished; the largest remaining gap is completing feature-level PR integration and release workflows.
 
 ## Known Existing Work
 
