@@ -14,7 +14,7 @@
 | Marketplace action entrypoint | `specs/overview-and-contract.md`            | `action.yml`                                                                                         | `iyaki/skills-update@v1`             | Action metadata contract                               | ✅ Implemented |
 | Runtime orchestration         | `specs/runtime-and-pr-flow.md`              | `scripts/run-skill-update.sh`                                                                        | N/A                                  | Phase transition + output mapping                      | ✅ Implemented |
 | Update feature                | `specs/features/update-feature.md`          | `scripts/run-skill-update.sh`                                                                        | `vercel-labs/skills` CLI             | Path policy (`allowed/ignored/blocked`)                | [ ] Missing    |
-| Commit feature                | `specs/features/commit-feature.md`          | `scripts/run-skill-update.sh`                                                                        | Git CLI                              | Commit outputs (`commit-created`, `commit-sha`)        | [ ] Missing    |
+| Commit feature                | `specs/features/commit-feature.md`          | `scripts/run-skill-update.sh`                                                                        | Git CLI                              | Commit outputs (`commit-created`, `commit-sha`)        | ⚠️ Partial     |
 | Pull request feature          | `specs/features/pull-request-feature.md`    | `scripts/run-skill-update.sh`                                                                        | `gh` CLI / GitHub API                | PR outputs (`pull-request-number`, `pull-request-url`) | ✅ Implemented |
 | Release and smoke workflows   | `specs/release-and-verification.md`         | `.github/workflows/release-marketplace-action.yml`, `.github/workflows/smoke-marketplace-action.yml` | GitHub Releases / tags               | `vX.Y.Z` + `v1` flow                                   | [ ] Missing    |
 | Template stack scaffolding    | Related system area for whole-repo scope    | `scripts/stack-setup.sh`, `scripts/test-template-stack.sh`, `templates/*`                            | `actions/checkout`, setup actions    | Template CI and smoke tests                            | ✅ Implemented |
@@ -141,7 +141,7 @@
 
 **Goal:** Implement safe commit generation from allowlisted files.
 
-**Status:** Not started
+**Status:** Partial
 
 **Paths:** `scripts/run-skill-update.sh`, `action.yml`
 
@@ -152,7 +152,7 @@
 - [ ] Run commit stage only when `create-commit=true` and allowed changes exist.
 - [x] Stage only allowlisted files produced by update policy.
 - [ ] Create exactly one commit with configurable `commit-message`.
-- [ ] Emit `commit-created` and `commit-sha` only when commit exists.
+- [x] Emit `commit-created` and `commit-sha` only when commit exists.
 - [ ] Skip commit stage cleanly when disabled or no allowed changes.
 
 **Definition of Done**
@@ -278,6 +278,8 @@
 - 2026-04-16: bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh - pass.
 - 2026-04-16: bash scripts/test-marketplace-workflows.sh - pass after adding sync-template conflict diagnostics assertions and README verification notes checks.
 - 2026-04-16: bash -n scripts/test-marketplace-workflows.sh - pass.
+- 2026-04-16: bash scripts/test-run-skill-update.sh - pass after adding regression for omitted optional outputs (`commit-sha`, `pull-request-number`, `pull-request-url`) when not created.
+- 2026-04-16: bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh - pass.
 
 ## Summary
 
@@ -287,7 +289,7 @@
 | Phase 2 - Marketplace Action Contract Surface | Complete    | 100%       |
 | Phase 3 - Runtime Orchestration               | Complete    | 100%       |
 | Phase 4 - Update Feature                      | Not started | 0%         |
-| Phase 5 - Commit Feature                      | Partial     | 20%        |
+| Phase 5 - Commit Feature                      | Partial     | 40%        |
 | Phase 6 - Pull Request Feature                | Complete    | 100%       |
 | Phase 7 - Release and Verification Pipeline   | Complete    | 100%       |
 | Phase 8 - Cross-Repo Workflow Hardening       | Partial     | 83%        |
