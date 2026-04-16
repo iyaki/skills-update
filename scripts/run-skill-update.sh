@@ -119,11 +119,11 @@ create_commit_from_allowed() {
 	local -n allowed_ref="$2"
 
 	stage_allowed_files allowed_ref
-	if git diff --cached --quiet; then
+	if git diff --cached --quiet -- "${allowed_ref[@]}"; then
 		fail "No staged files found for commit creation"
 	fi
 
-	git commit -m "$commit_message" >/dev/null
+	git commit -m "$commit_message" -- "${allowed_ref[@]}" >/dev/null
 	git rev-parse HEAD
 }
 

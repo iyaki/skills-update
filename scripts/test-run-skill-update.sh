@@ -213,6 +213,34 @@ test_allowed_change_creates_commit() {
 	[[ "$commit_sha" =~ ^[0-9a-f]{40}$ ]] || fail "Commit SHA should be 40 lowercase hex characters"
 }
 
+test_commit_excludes_pre_staged_ignored_files() {
+	local workdir
+	workdir=$(mktemp -d)
+	local outputs="$workdir/outputs.txt"
+	setup_repo "$workdir"
+
+	printf '{"ignored":true}\n' >"$workdir/.agents/.skill-lock.json"
+	git -C "$workdir" add .agents/.skill-lock.json
+
+	run_runtime "$workdir" "bash -lc 'printf \"{\\\"updated\\\":true}\\n\" > skills-lock.json'" "true" "false" "true" "$outputs"
+
+	assert_contains_line "changed=true" "$outputs"
+	assert_contains_line "commit-created=true" "$outputs"
+
+	local commit_sha
+	commit_sha=$(grep -E '^commit-sha=' "$outputs" | cut -d= -f2)
+	assert_non_empty "$commit_sha" "Commit SHA must be present when commit is created"
+
+	local committed_files
+	committed_files=$(git -C "$workdir" show --name-only --pretty=format: "$commit_sha")
+	if grep -Fxq ".agents/.skill-lock.json" <<<"$committed_files"; then
+		fail "Commit must not include ignored files"
+	fi
+	if ! grep -Fxq "skills-lock.json" <<<"$committed_files"; then
+		fail "Commit should include allowlisted updated files"
+	fi
+}
+
 test_blocked_path_fails() {
 	local workdir
 	workdir=$(mktemp -d)
@@ -321,6 +349,7 @@ main() {
 
 	test_no_change_skips_write_stages
 	test_allowed_change_creates_commit
+	test_commit_excludes_pre_staged_ignored_files
 	test_blocked_path_fails
 	test_ignored_only_change_is_non_failing
 	test_pr_stage_creates_pr_and_emits_outputs
