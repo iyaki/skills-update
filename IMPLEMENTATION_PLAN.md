@@ -1,6 +1,6 @@
 # Implementation Plan (Whole System)
 
-**Status:** Runtime + PR Orchestration Implemented (3/8 phases complete, 1/8 partial)
+**Status:** Runtime + PR Orchestration Implemented (4/8 phases complete, 1/8 partial)
 
 **Last Updated:** 2026-04-16
 
@@ -200,9 +200,9 @@
 
 **Goal:** Implement v1 release process (`vX.Y.Z` immutable + moving `v1`) and smoke verification.
 
-**Status:** Partial
+**Status:** Complete
 
-**Paths:** `.github/workflows/release-marketplace-action.yml` (missing), `.github/workflows/smoke-marketplace-action.yml` (missing), `README.md`
+**Paths:** `.github/workflows/release-marketplace-action.yml`, `.github/workflows/smoke-marketplace-action.yml`, `README.md`
 
 #### 7.1 Release workflows and compatibility checks
 
@@ -211,7 +211,7 @@
 - [x] Add smoke workflow for marketplace action scenarios (update-only, commit-enabled, pr-enabled).
 - [x] Add release workflow gated on successful smoke/contract checks.
 - [x] Publish immutable semver tags and move `v1` alias via validated workflow.
-- [ ] Document release operator steps and rollback strategy.
+- [x] Document release operator steps and rollback strategy.
 
 **Definition of Done**
 
@@ -271,6 +271,7 @@
 - 2026-04-16: `bash -n scripts/test-marketplace-workflows.sh` - pass.
 - 2026-04-16: `bash scripts/test-run-skill-update.sh` - pass.
 - 2026-04-16: `bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh` - pass.
+- 2026-04-16: `bash scripts/test-marketplace-workflows.sh` - pass after adding release operator and rollback documentation in `README.md`.
 
 ## Summary
 
@@ -282,10 +283,10 @@
 | Phase 4 - Update Feature                      | Not started | 0%         |
 | Phase 5 - Commit Feature                      | Not started | 0%         |
 | Phase 6 - Pull Request Feature                | Complete    | 100%       |
-| Phase 7 - Release and Verification Pipeline   | Partial     | 75%        |
+| Phase 7 - Release and Verification Pipeline   | Complete    | 100%       |
 | Phase 8 - Cross-Repo Workflow Hardening       | Partial     | 67%        |
 
-**Remaining effort:** 3 core action phases and 1 hardening phase are unfinished; remaining gap in release pipeline is operator/rollback documentation.
+**Remaining effort:** 3 core action phases and 1 hardening phase are unfinished.
 
 ## Known Existing Work
 
