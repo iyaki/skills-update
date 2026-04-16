@@ -53,12 +53,19 @@ run_runtime() {
 	local update_command="$2"
 	local create_commit="$3"
 	local create_pr="$4"
-	local output_file="$5"
+	local pr_generate_commit="$5"
+	local output_file="$6"
+	local path_prefix="${7:-}"
 
 	(
 		cd "$ROOT_DIR"
+		local runtime_path="$PATH"
+		if [[ -n "$path_prefix" ]]; then
+			runtime_path="$path_prefix:$runtime_path"
+		fi
 		GITHUB_OUTPUT="$output_file" \
 			GITHUB_TOKEN="test-token" \
+			PATH="$runtime_path" \
 			GITHUB_REPOSITORY="octo/example" \
 			INPUT_WORKING_DIRECTORY="$repo_dir" \
 			INPUT_SKILLS_CLI_VERSION="0.11.0" \
@@ -68,7 +75,7 @@ run_runtime() {
 			INPUT_CREATE_COMMIT="$create_commit" \
 			INPUT_COMMIT_MESSAGE="chore(skills): update installed skills" \
 			INPUT_CREATE_PR="$create_pr" \
-			INPUT_PR_GENERATE_COMMIT="true" \
+			INPUT_PR_GENERATE_COMMIT="$pr_generate_commit" \
 			INPUT_BASE_BRANCH="" \
 			INPUT_PR_BRANCH="chore/skills-update" \
 			INPUT_PR_TITLE="chore(skills): update installed skills" \
@@ -77,13 +84,78 @@ run_runtime() {
 	)
 }
 
+setup_origin_remote() {
+	local repo_dir="$1"
+	local remote_dir
+	remote_dir=$(mktemp -d)
+	git init --bare -q "$remote_dir/origin.git"
+	git -C "$repo_dir" remote add origin "$remote_dir/origin.git"
+	git -C "$repo_dir" push -q -u origin HEAD:main
+}
+
+setup_fake_gh() {
+	local bin_dir="$1"
+	mkdir -p "$bin_dir"
+	cat >"$bin_dir/gh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+method="GET"
+endpoint=""
+
+if [[ "$1" != "api" ]]; then
+	echo "unsupported gh command" >&2
+	exit 1
+fi
+shift
+
+while [[ "$#" -gt 0 ]]; do
+	case "$1" in
+	-X)
+		method="$2"
+		shift 2
+		;;
+	-f)
+		shift 2
+		;;
+	*)
+		if [[ -z "$endpoint" ]]; then
+			endpoint="$1"
+		fi
+		shift
+		;;
+	esac
+done
+
+case "$method:$endpoint" in
+"GET:repos/octo/example")
+	printf '{"default_branch":"main"}\n'
+	;;
+"GET:repos/octo/example/pulls?state=open&head=octo:chore/skills-update&base=main&per_page=1")
+	printf '[]\n'
+	;;
+"POST:repos/octo/example/pulls")
+	printf '{"number":7,"html_url":"https://github.com/octo/example/pull/7"}\n'
+	;;
+"POST:repos/octo/example/issues/7/labels")
+	printf '{"ok":true}\n'
+	;;
+*)
+	echo "unsupported api call: $method $endpoint" >&2
+	exit 1
+	;;
+esac
+EOF
+	chmod +x "$bin_dir/gh"
+}
+
 test_no_change_skips_write_stages() {
 	local workdir
 	workdir=$(mktemp -d)
 	local outputs="$workdir/outputs.txt"
 	setup_repo "$workdir"
 
-	run_runtime "$workdir" "true" "true" "false" "$outputs"
+	run_runtime "$workdir" "true" "true" "false" "true" "$outputs"
 
 	assert_contains_line "changed=false" "$outputs"
 	assert_contains_line "commit-created=false" "$outputs"
@@ -97,7 +169,7 @@ test_allowed_change_creates_commit() {
 	local outputs="$workdir/outputs.txt"
 	setup_repo "$workdir"
 
-	run_runtime "$workdir" "bash -lc 'printf \"{\\\"updated\\\":true}\\n\" > skills-lock.json'" "true" "false" "$outputs"
+	run_runtime "$workdir" "bash -lc 'printf \"{\\\"updated\\\":true}\\n\" > skills-lock.json'" "true" "false" "true" "$outputs"
 
 	assert_contains_line "changed=true" "$outputs"
 	assert_contains_line "updated-files<<__SKILLS_EOF__" "$outputs"
@@ -120,7 +192,7 @@ test_blocked_path_fails() {
 	setup_repo "$workdir"
 
 	set +e
-	run_runtime "$workdir" "bash -lc 'printf \"changed\\n\" >> README.md'" "true" "false" "$outputs"
+	run_runtime "$workdir" "bash -lc 'printf \"changed\\n\" >> README.md'" "true" "false" "true" "$outputs"
 	local exit_code=$?
 	set -e
 
@@ -135,10 +207,49 @@ test_ignored_only_change_is_non_failing() {
 	local outputs="$workdir/outputs.txt"
 	setup_repo "$workdir"
 
-	run_runtime "$workdir" "bash -lc 'printf \"{\\\"local\\\":true}\\n\" > .agents/.skill-lock.json'" "true" "false" "$outputs"
+	run_runtime "$workdir" "bash -lc 'printf \"{\\\"local\\\":true}\\n\" > .agents/.skill-lock.json'" "true" "false" "true" "$outputs"
 
 	assert_contains_line "changed=false" "$outputs"
 	assert_contains_line "commit-created=false" "$outputs"
+}
+
+test_pr_stage_creates_pr_and_emits_outputs() {
+	local workdir
+	workdir=$(mktemp -d)
+	local outputs="$workdir/outputs.txt"
+	local fake_tools
+	fake_tools=$(mktemp -d)
+	local fake_bin="$fake_tools/fake-bin"
+	setup_repo "$workdir"
+	setup_origin_remote "$workdir"
+	setup_fake_gh "$fake_bin"
+
+	run_runtime "$workdir" "bash -lc 'printf \"{\\\"updated\\\":true}\\n\" > skills-lock.json'" "false" "true" "true" "$outputs" "$fake_bin"
+
+	assert_contains_line "changed=true" "$outputs"
+	assert_contains_line "commit-created=true" "$outputs"
+	assert_contains_line "pull-request-number=7" "$outputs"
+	assert_contains_line "pull-request-url=https://github.com/octo/example/pull/7" "$outputs"
+
+	local branch
+	branch=$(grep -E '^branch=' "$outputs" | cut -d= -f2)
+	assert_eq "$branch" "chore/skills-update" "Branch output should equal PR branch when PR stage is enabled"
+}
+
+test_pr_stage_fails_without_commit_when_generation_disabled() {
+	local workdir
+	workdir=$(mktemp -d)
+	local outputs="$workdir/outputs.txt"
+	setup_repo "$workdir"
+
+	set +e
+	run_runtime "$workdir" "bash -lc 'printf \"{\\\"updated\\\":true}\\n\" > skills-lock.json'" "false" "true" "false" "$outputs"
+	local exit_code=$?
+	set -e
+
+	if [[ "$exit_code" -eq 0 ]]; then
+		fail "Runtime should fail when pull request stage cannot create missing commit"
+	fi
 }
 
 main() {
@@ -148,6 +259,8 @@ main() {
 	test_allowed_change_creates_commit
 	test_blocked_path_fails
 	test_ignored_only_change_is_non_failing
+	test_pr_stage_creates_pr_and_emits_outputs
+	test_pr_stage_fails_without_commit_when_generation_disabled
 
 	echo "Runtime orchestration tests passed"
 }

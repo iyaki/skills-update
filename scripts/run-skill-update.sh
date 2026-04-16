@@ -127,6 +127,72 @@ create_commit_from_allowed() {
 	git rev-parse HEAD
 }
 
+json_extract() {
+	local python_expr="$1"
+	python -c "import json,sys; data=json.load(sys.stdin); result=($python_expr); print('' if result is None else result)"
+}
+
+resolve_base_branch() {
+	local repository="$1"
+	local configured_base_branch="$2"
+
+	if [[ -n "$configured_base_branch" ]]; then
+		printf '%s' "$configured_base_branch"
+		return
+	fi
+
+	gh api "repos/${repository}" | json_extract "data.get('default_branch', '')"
+}
+
+checkout_pr_branch() {
+	local pr_branch="$1"
+	local current_branch
+	current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+	if [[ "$current_branch" != "$pr_branch" ]]; then
+		git checkout -B "$pr_branch" >/dev/null
+	fi
+}
+
+push_pr_branch() {
+	local pr_branch="$1"
+	git push -u origin "HEAD:${pr_branch}" >/dev/null
+}
+
+find_existing_pr_json() {
+	local repository="$1"
+	local owner="$2"
+	local pr_branch="$3"
+	local base_branch="$4"
+	gh api "repos/${repository}/pulls?state=open&head=${owner}:${pr_branch}&base=${base_branch}&per_page=1"
+}
+
+create_pr_json() {
+	local repository="$1"
+	local base_branch="$2"
+	local pr_branch="$3"
+	local pr_title="$4"
+	gh api -X POST "repos/${repository}/pulls" -f "title=${pr_title}" -f "head=${pr_branch}" -f "base=${base_branch}"
+}
+
+add_pr_labels() {
+	local repository="$1"
+	local pr_number="$2"
+	local -n labels_ref="$3"
+
+	if [[ "${#labels_ref[@]}" -eq 0 ]]; then
+		return
+	fi
+
+	local -a args=()
+	local label
+	for label in "${labels_ref[@]}"; do
+		args+=("-f" "labels[]=${label}")
+	done
+
+	gh api -X POST "repos/${repository}/issues/${pr_number}/labels" "${args[@]}" >/dev/null
+}
+
 main() {
 	local working_directory="${INPUT_WORKING_DIRECTORY:-.}"
 	local update_command="${INPUT_UPDATE_COMMAND:-}"
@@ -139,15 +205,20 @@ main() {
 	create_pr=$(to_bool "${INPUT_CREATE_PR:-true}")
 	local pr_generate_commit
 	pr_generate_commit=$(to_bool "${INPUT_PR_GENERATE_COMMIT:-true}")
+	local base_branch_input="${INPUT_BASE_BRANCH:-}"
 	local pr_branch="${INPUT_PR_BRANCH:-chore/skills-update}"
+	local pr_title="${INPUT_PR_TITLE:-chore(skills): update installed skills}"
+	local pr_labels_csv="${INPUT_PR_LABELS:-chore,automation}"
 
 	[[ -n "$update_command" ]] || fail "update-command is required"
 	[[ -d "$working_directory" ]] || fail "working-directory does not exist: $working_directory"
 
 	local -a add_paths=()
 	local -a ignore_paths=()
+	local -a pr_labels=()
 	csv_to_array "$add_paths_csv" add_paths
 	csv_to_array "$ignore_paths_csv" ignore_paths
+	csv_to_array "$pr_labels_csv" pr_labels
 	[[ "${#add_paths[@]}" -gt 0 ]] || fail "add-paths cannot be empty"
 
 	cd "$working_directory"
@@ -201,6 +272,10 @@ main() {
 	local pull_request_number=""
 	local pull_request_url=""
 	if [[ "$changed" == "true" && "$create_pr" == "true" ]]; then
+		local github_repository="${GITHUB_REPOSITORY:-}"
+		[[ -n "$github_repository" ]] || fail "GITHUB_REPOSITORY is required when create-pr=true"
+		command -v gh >/dev/null 2>&1 || fail "gh CLI is required when create-pr=true"
+
 		if [[ -z "$commit_sha" ]]; then
 			if [[ "$pr_generate_commit" == "true" ]]; then
 				commit_sha=$(create_commit_from_allowed "$commit_message" allowed_files)
@@ -209,7 +284,33 @@ main() {
 				fail "pull request stage requires commit, but pr-generate-commit=false and no commit exists"
 			fi
 		fi
-		fail "pull request stage is not implemented yet"
+
+		checkout_pr_branch "$pr_branch"
+		push_pr_branch "$pr_branch"
+
+		local owner="${github_repository%%/*}"
+		local base_branch
+		base_branch=$(resolve_base_branch "$github_repository" "$base_branch_input")
+		[[ -n "$base_branch" ]] || fail "Unable to resolve base branch for pull request stage"
+
+		local existing_pr_json
+		existing_pr_json=$(find_existing_pr_json "$github_repository" "$owner" "$pr_branch" "$base_branch")
+		local existing_pr_number
+		existing_pr_number=$(printf '%s' "$existing_pr_json" | json_extract "str(data[0].get('number')) if isinstance(data, list) and len(data) > 0 else ''")
+
+		if [[ -n "$existing_pr_number" ]]; then
+			pull_request_number="$existing_pr_number"
+			pull_request_url=$(printf '%s' "$existing_pr_json" | json_extract "data[0].get('html_url', '') if isinstance(data, list) and len(data) > 0 else ''")
+		else
+			local created_pr_json
+			created_pr_json=$(create_pr_json "$github_repository" "$base_branch" "$pr_branch" "$pr_title")
+			pull_request_number=$(printf '%s' "$created_pr_json" | json_extract "str(data.get('number', ''))")
+			pull_request_url=$(printf '%s' "$created_pr_json" | json_extract "data.get('html_url', '')")
+		fi
+
+		[[ -n "$pull_request_number" ]] || fail "pull request stage failed to produce pull request number"
+		[[ -n "$pull_request_url" ]] || fail "pull request stage failed to produce pull request URL"
+		add_pr_labels "$github_repository" "$pull_request_number" pr_labels
 	fi
 
 	write_output "changed" "$changed"
