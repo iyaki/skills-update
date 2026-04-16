@@ -1,9 +1,0 @@
-bin/
-coverage.out
-*.test
-*.prof
-vendor/
-.env
-.env.*
-.DS_Store
-/node_modules/
