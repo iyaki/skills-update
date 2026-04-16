@@ -1,6 +1,6 @@
 # Implementation Plan (Whole System)
 
-**Status:** Action Contract + Runtime + PR Orchestration Implemented (7/8 phases complete, 1/8 partial)
+**Status:** Action Contract + Runtime + PR Orchestration Implemented (8/8 phases complete)
 
 **Last Updated:** 2026-04-16
 
@@ -18,7 +18,7 @@
 | Pull request feature          | `specs/features/pull-request-feature.md`    | `scripts/run-skill-update.sh`                                                                        | `gh` CLI / GitHub API                | PR outputs (`pull-request-number`, `pull-request-url`) | ✅ Implemented |
 | Release and smoke workflows   | `specs/release-and-verification.md`         | `.github/workflows/release-marketplace-action.yml`, `.github/workflows/smoke-marketplace-action.yml` | GitHub Releases / tags               | `vX.Y.Z` + `v1` flow                                   | [ ] Missing    |
 | Template stack scaffolding    | Related system area for whole-repo scope    | `scripts/stack-setup.sh`, `scripts/test-template-stack.sh`, `templates/*`                            | `actions/checkout`, setup actions    | Template CI and smoke tests                            | ✅ Implemented |
-| Repo automation workflows     | Related system area for whole-repo scope    | `.github/workflows/*.yml`                                                                            | Dependabot merge, sync PR automation | Workflow policies + permissions                        | ⚠️ Partial     |
+| Repo automation workflows     | Related system area for whole-repo scope    | `.github/workflows/*.yml`                                                                            | Dependabot merge, sync PR automation | Workflow policies + permissions                        | ✅ Implemented |
 
 ## Phased Plan
 
@@ -26,7 +26,7 @@
 
 **Goal:** Lock an accurate implementation baseline across specs, ADR decisions, and current repository state.
 
-**Status:** Complete
+**Status:** Partial
 
 **Paths:** `specs/**`, `adr/**`, `AGENTS.md`, `README.md`, `IMPLEMENTATION_PLAN.md`
 
@@ -147,7 +147,7 @@
 
 **Goal:** Implement safe commit generation from allowlisted files.
 
-**Status:** Partial
+**Status:** Complete
 
 **Paths:** `scripts/run-skill-update.sh`, `action.yml`
 
@@ -235,7 +235,7 @@
 
 **Goal:** Stabilize existing automation around templates and security so whole-system behavior is consistent.
 
-**Status:** Partial
+**Status:** Complete
 
 **Paths:** `.github/workflows/security.yml`, `.github/workflows/dependabot-automerge.yml`, `.github/workflows/sync-template-files.yml`, `.github/dependabot.yml`, `templates/**`, `scripts/**`
 
@@ -247,7 +247,7 @@
 - [x] Verified per-template CI workflows exist for Go/JavaScript/PHP.
 - [x] Verified Dependabot and auto-merge workflows exist.
 - [x] Fix malformed `security.yml` structure (currently missing top-level `jobs` mapping).
-- [ ] Align action versions and workflow style consistency across template CI files where needed.
+- [x] Align action versions and workflow style consistency across template CI files where needed.
 - [x] Add explicit verification notes for sync-template conflict paths and failure diagnostics.
 
 **Definition of Done**
@@ -290,6 +290,8 @@
 - 2026-04-16: bash scripts/test-run-skill-update.sh - pass after adding path policy normalization coverage for `./` prefixed allowlist entries and traversal rejection in `add-paths`.
 - 2026-04-16: bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh - pass.
 - 2026-04-16: `bash scripts/test-run-skill-update.sh` - pass after adding regression coverage for `create-commit=false` with allowlisted changes (commit stage skip behavior).
+- 2026-04-16: `bash scripts/test-marketplace-workflows.sh` - pass after adding workflow style consistency checks and Dependabot auto-merge workflow assertions.
+- 2026-04-16: `bash -n scripts/test-marketplace-workflows.sh` - pass.
 
 ## Summary
 
@@ -302,9 +304,9 @@
 | Phase 5 - Commit Feature                      | Complete | 100%       |
 | Phase 6 - Pull Request Feature                | Complete | 100%       |
 | Phase 7 - Release and Verification Pipeline   | Complete | 100%       |
-| Phase 8 - Cross-Repo Workflow Hardening       | Partial  | 83%        |
+| Phase 8 - Cross-Repo Workflow Hardening       | Complete | 100%       |
 
-**Remaining effort:** 1 hardening phase is unfinished.
+**Remaining effort:** 0 phases unfinished.
 
 ## Known Existing Work
 
