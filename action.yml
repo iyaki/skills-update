@@ -1,0 +1,110 @@
+name: Skills Update Action
+description: Update repository skills and optionally create commit and pull request artifacts.
+author: iyaki
+
+inputs:
+  github-token:
+    description: GitHub token used for repository and pull request write operations.
+    required: true
+  working-directory:
+    description: Directory where update and git operations run.
+    required: false
+    default: .
+  skills-cli-version:
+    description: Version of the skills CLI to use in default update command.
+    required: false
+    default: 0.11.0
+  update-command:
+    description: Optional non-interactive command used to update skills.
+    required: false
+    default: ""
+  add-paths:
+    description: Comma-separated allowlist globs for changed files.
+    required: false
+    default: skills-lock.json,.agents/skills/**
+  ignore-paths:
+    description: Comma-separated ignore globs excluded from write stages.
+    required: false
+    default: .agents/.skill-lock.json
+  create-commit:
+    description: Enable commit stage.
+    required: false
+    default: "true"
+  commit-message:
+    description: Commit message used when creating a commit.
+    required: false
+    default: "chore(skills): update installed skills"
+  create-pr:
+    description: Enable pull request stage.
+    required: false
+    default: "true"
+  pr-generate-commit:
+    description: Allow pull request stage to generate commit when missing.
+    required: false
+    default: "true"
+  base-branch:
+    description: Pull request base branch; defaults to repository default branch.
+    required: false
+    default: ""
+  pr-branch:
+    description: Rolling pull request branch.
+    required: false
+    default: chore/skills-update
+  pr-title:
+    description: Title for created or updated pull request.
+    required: false
+    default: "chore(skills): update installed skills"
+  pr-labels:
+    description: Comma-separated pull request labels.
+    required: false
+    default: chore,automation
+
+outputs:
+  changed:
+    description: Whether allowlisted files changed (true/false).
+    value: ${{ steps.run.outputs.changed }}
+  updated-files:
+    description: Newline-delimited allowlisted changed files.
+    value: ${{ steps.run.outputs.updated-files }}
+  commit-created:
+    description: Whether a commit was created (true/false).
+    value: ${{ steps.run.outputs.commit-created }}
+  commit-sha:
+    description: Commit SHA when commit was created.
+    value: ${{ steps.run.outputs.commit-sha }}
+  pull-request-number:
+    description: Pull request number when PR exists.
+    value: ${{ steps.run.outputs.pull-request-number }}
+  pull-request-url:
+    description: Pull request URL when PR exists.
+    value: ${{ steps.run.outputs.pull-request-url }}
+  branch:
+    description: Branch used for commit or pull request stages.
+    value: ${{ steps.run.outputs.branch }}
+
+runs:
+  using: composite
+  steps:
+    - name: Run skills update runtime
+      id: run
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        INPUT_SKILLS_CLI_VERSION: ${{ inputs.skills-cli-version }}
+        INPUT_UPDATE_COMMAND: ${{ inputs.update-command }}
+        INPUT_ADD_PATHS: ${{ inputs.add-paths }}
+        INPUT_IGNORE_PATHS: ${{ inputs.ignore-paths }}
+        INPUT_CREATE_COMMIT: ${{ inputs.create-commit }}
+        INPUT_COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        INPUT_CREATE_PR: ${{ inputs.create-pr }}
+        INPUT_PR_GENERATE_COMMIT: ${{ inputs.pr-generate-commit }}
+        INPUT_BASE_BRANCH: ${{ inputs.base-branch }}
+        INPUT_PR_BRANCH: ${{ inputs.pr-branch }}
+        INPUT_PR_TITLE: ${{ inputs.pr-title }}
+        INPUT_PR_LABELS: ${{ inputs.pr-labels }}
+        CI: "1"
+        DISABLE_TELEMETRY: "1"
+        DO_NOT_TRACK: "1"
+        TZ: UTC
+      run: bash scripts/run-skill-update.sh

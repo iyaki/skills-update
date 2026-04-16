@@ -195,6 +195,7 @@ add_pr_labels() {
 
 main() {
 	local working_directory="${INPUT_WORKING_DIRECTORY:-.}"
+	local skills_cli_version="${INPUT_SKILLS_CLI_VERSION:-0.11.0}"
 	local update_command="${INPUT_UPDATE_COMMAND:-}"
 	local add_paths_csv="${INPUT_ADD_PATHS:-skills-lock.json,.agents/skills/**}"
 	local ignore_paths_csv="${INPUT_IGNORE_PATHS:-.agents/.skill-lock.json}"
@@ -210,7 +211,9 @@ main() {
 	local pr_title="${INPUT_PR_TITLE:-chore(skills): update installed skills}"
 	local pr_labels_csv="${INPUT_PR_LABELS:-chore,automation}"
 
-	[[ -n "$update_command" ]] || fail "update-command is required"
+	if [[ -z "$update_command" ]]; then
+		update_command="npx --yes skills@${skills_cli_version} update -p -y"
+	fi
 	[[ -d "$working_directory" ]] || fail "working-directory does not exist: $working_directory"
 
 	local -a add_paths=()
@@ -227,7 +230,7 @@ main() {
 	local branch
 	branch=$(resolve_branch_output "$create_pr" "$pr_branch")
 
-	if ! bash -lc "$update_command"; then
+	if ! bash -c "$update_command"; then
 		fail "update stage failed while executing update-command"
 	fi
 

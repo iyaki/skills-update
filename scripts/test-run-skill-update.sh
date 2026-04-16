@@ -149,6 +149,34 @@ EOF
 	chmod +x "$bin_dir/gh"
 }
 
+setup_fake_npx() {
+	local bin_dir="$1"
+	local expected_version="$2"
+	mkdir -p "$bin_dir"
+	cat >"$bin_dir/npx" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "\$1" != "--yes" ]]; then
+	echo "missing --yes" >&2
+	exit 1
+fi
+
+if [[ "\$2" != "skills@${expected_version}" ]]; then
+	echo "unexpected skills version: \$2" >&2
+	exit 1
+fi
+
+if [[ "\$3" != "update" || "\$4" != "-p" || "\$5" != "-y" ]]; then
+	echo "unexpected update command args" >&2
+	exit 1
+fi
+
+printf '{"updated":true}\n' > skills-lock.json
+EOF
+	chmod +x "$bin_dir/npx"
+}
+
 test_no_change_skips_write_stages() {
 	local workdir
 	workdir=$(mktemp -d)
@@ -252,6 +280,42 @@ test_pr_stage_fails_without_commit_when_generation_disabled() {
 	fi
 }
 
+test_default_update_command_uses_skills_cli_version() {
+	local workdir
+	workdir=$(mktemp -d)
+	local outputs="$workdir/outputs.txt"
+	local fake_tools
+	fake_tools=$(mktemp -d)
+	local fake_bin="$fake_tools/fake-bin"
+	setup_repo "$workdir"
+	setup_fake_npx "$fake_bin" "9.9.9"
+
+	(
+		cd "$ROOT_DIR"
+		GITHUB_OUTPUT="$outputs" \
+			GITHUB_TOKEN="test-token" \
+			PATH="$fake_bin:$PATH" \
+			INPUT_WORKING_DIRECTORY="$workdir" \
+			INPUT_SKILLS_CLI_VERSION="9.9.9" \
+			INPUT_UPDATE_COMMAND="" \
+			INPUT_ADD_PATHS="skills-lock.json,.agents/skills/**" \
+			INPUT_IGNORE_PATHS=".agents/.skill-lock.json" \
+			INPUT_CREATE_COMMIT="false" \
+			INPUT_COMMIT_MESSAGE="chore(skills): update installed skills" \
+			INPUT_CREATE_PR="false" \
+			INPUT_PR_GENERATE_COMMIT="true" \
+			INPUT_BASE_BRANCH="" \
+			INPUT_PR_BRANCH="chore/skills-update" \
+			INPUT_PR_TITLE="chore(skills): update installed skills" \
+			INPUT_PR_LABELS="chore,automation" \
+			bash "$RUNTIME_SCRIPT"
+	)
+
+	assert_contains_line "changed=true" "$outputs"
+	assert_contains_line "updated-files<<__SKILLS_EOF__" "$outputs"
+	assert_contains_line "skills-lock.json" "$outputs"
+}
+
 main() {
 	[[ -x "$RUNTIME_SCRIPT" ]] || fail "Runtime script not executable: $RUNTIME_SCRIPT"
 
@@ -261,6 +325,7 @@ main() {
 	test_ignored_only_change_is_non_failing
 	test_pr_stage_creates_pr_and_emits_outputs
 	test_pr_stage_fails_without_commit_when_generation_disabled
+	test_default_update_command_uses_skills_cli_version
 
 	echo "Runtime orchestration tests passed"
 }
