@@ -16,33 +16,33 @@ This repository gives sensible defaults, guardrails, and batteries-included tool
 
 - Devcontainer based on the universal image.
 - Preinstalled tools/features:
-	- OpenCode
-	- Ralph
-	- Lefthook (git hooks manager)
+  - OpenCode
+  - Ralph
+  - Lefthook (git hooks manager)
 - VS Code extensions preconfigured:
-	- OpenCode extension
-	- EditorConfig
-	- Gremlins (invisible-character detector)
+  - OpenCode extension
+  - EditorConfig
+  - Gremlins (invisible-character detector)
 - Host config mounts for OpenCode state and GitHub CLI config.
 - Auto setup on initialize/post-create/post-start:
-	- Creates local OpenCode and GH config directories if missing.
-	- Installs git hooks via Lefthook.
-	- Refreshes available OpenCode models.
+  - Creates local OpenCode and GH config directories if missing.
+  - Installs git hooks via Lefthook.
+  - Refreshes available OpenCode models.
 
 ### 2) Agent and workflow defaults
 
 - OpenCode config includes a dedicated Ralph-compatible agent mode.
 - Default Ralph loop settings:
-	- max iterations set
-	- logs enabled to logs/ralph.log
-	- specs directory wired to specs/
-	- OpenCode selected as agent backend
+  - max iterations set
+  - logs enabled to logs/ralph.log
+  - specs directory wired to specs/
+  - OpenCode selected as agent backend
 - Permission guardrails in OpenCode config to reduce risky edits.
-	- Blocks bypass-style commit patterns (for example, no-verify commit flows).
-	- Restricts editing sensitive paths like git internals, logs, and selected config files.
+  - Blocks bypass-style commit patterns (for example, no-verify commit flows).
+  - Restricts editing sensitive paths like git internals, logs, and selected config files.
 - Plugin defaults enabled for environment safety and quota visibility.
-	- envsitter-guard
-	- @slkiser/opencode-quota
+  - envsitter-guard
+  - @slkiser/opencode-quota
 
 ### 3) MCP server integrations
 
@@ -79,8 +79,8 @@ This template ships with a curated starter skill set:
 - Editor and formatting standards via EditorConfig.
 - Git hygiene defaults via .gitignore.
 - Dependabot configured for:
-	- Devcontainer updates
-	- npm updates
+  - Devcontainer updates
+  - npm updates
 - Dependabot auto-merge workflow included for minor updates.
 - Security workflow template included for Semgrep (requires SEMGREP_APP_TOKEN secret).
 
@@ -126,9 +126,75 @@ This template intentionally defaults to:
 3. Open in VS Code Dev Containers / Codespaces.
 4. Let post-create tasks complete.
 5. Configure optional secrets and environment variables:
-	 - DATACOMMONS_API_KEY for Data Commons MCP
-	 - SEMGREP_APP_TOKEN for Semgrep workflow
+   - DATACOMMONS_API_KEY for Data Commons MCP
+   - SEMGREP_APP_TOKEN for Semgrep workflow
 6. Adjust AGENTS.md and OpenCode permissions to match your workflow and risk tolerance.
+
+## Skills update marketplace action usage
+
+Use the published action from workflow jobs with `uses: iyaki/skills-update@v1`.
+
+Update-only run:
+
+```yaml
+- name: Update skills files only
+  id: skills
+  uses: iyaki/skills-update@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    create-commit: false
+    create-pr: false
+```
+
+Commit and pull request run:
+
+```yaml
+- name: Update skills and open PR
+  id: skills
+  uses: iyaki/skills-update@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    create-commit: true
+    create-pr: true
+    pr-generate-commit: true
+```
+
+## Marketplace action release operations
+
+Use `.github/workflows/release-marketplace-action.yml` to publish immutable `vX.Y.Z` tags and move the `v1` major alias.
+
+Pre-release checks:
+
+1. Ensure the repository default branch is green.
+2. Trigger `.github/workflows/smoke-marketplace-action.yml` with `scenario=all` and confirm success.
+3. Verify workflow contract checks pass locally:
+
+```sh
+bash scripts/test-run-skill-update.sh
+bash scripts/test-marketplace-workflows.sh
+```
+
+Release steps:
+
+1. Open the Actions tab and run `release marketplace action`.
+2. Set `release-tag` using `vX.Y.Z` format.
+3. Confirm the workflow creates the immutable release tag and updates `v1`.
+4. Verify release artifacts at:
+   - `https://github.com/<owner>/<repo>/releases/tag/vX.Y.Z`
+   - `https://github.com/<owner>/<repo>/releases/tag/v1`
+
+Rollback strategy:
+
+1. Do not retag the immutable `vX.Y.Z` release.
+2. Move `v1` to the last known-good release tag:
+
+```sh
+git fetch --tags origin
+git tag -f v1 <previous-vX.Y.Z>
+git push origin refs/tags/v1 --force
+```
+
+3. Open a corrective pull request for root-cause fixes before publishing the next semver tag.
 
 ## Optional project setup paths
 
