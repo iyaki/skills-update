@@ -65,6 +65,8 @@ run_runtime() {
 	local output_file="$6"
 	local path_prefix="${7:-}"
 	local commit_message="${8:-chore(skills): update installed skills}"
+	local add_paths="${9:-skills-lock.json,.agents/skills/**}"
+	local ignore_paths="${10:-.agents/.skill-lock.json}"
 
 	(
 		cd "$ROOT_DIR"
@@ -79,8 +81,8 @@ run_runtime() {
 			INPUT_WORKING_DIRECTORY="$repo_dir" \
 			INPUT_SKILLS_CLI_VERSION="0.11.0" \
 			INPUT_UPDATE_COMMAND="$update_command" \
-			INPUT_ADD_PATHS="skills-lock.json,.agents/skills/**" \
-			INPUT_IGNORE_PATHS=".agents/.skill-lock.json" \
+			INPUT_ADD_PATHS="$add_paths" \
+			INPUT_IGNORE_PATHS="$ignore_paths" \
 			INPUT_CREATE_COMMIT="$create_commit" \
 			INPUT_COMMIT_MESSAGE="$commit_message" \
 			INPUT_CREATE_PR="$create_pr" \
@@ -91,6 +93,52 @@ run_runtime() {
 			INPUT_PR_LABELS="chore,automation" \
 			bash "$RUNTIME_SCRIPT"
 	)
+}
+
+test_add_paths_normalizes_dot_slash_prefix() {
+	local workdir
+	workdir=$(mktemp -d)
+	local outputs="$workdir/outputs.txt"
+	setup_repo "$workdir"
+
+	run_runtime \
+		"$workdir" \
+		"bash -lc 'printf \"{\\\"updated\\\":true}\\n\" > skills-lock.json'" \
+		"true" \
+		"false" \
+		"true" \
+		"$outputs" \
+		"" \
+		"chore(skills): update installed skills" \
+		"./skills-lock.json,./.agents/skills/**"
+
+	assert_contains_line "changed=true" "$outputs"
+	assert_contains_line "commit-created=true" "$outputs"
+}
+
+test_rejects_path_traversal_in_policy_inputs() {
+	local workdir
+	workdir=$(mktemp -d)
+	local outputs="$workdir/outputs.txt"
+	setup_repo "$workdir"
+
+	set +e
+	run_runtime \
+		"$workdir" \
+		"true" \
+		"false" \
+		"false" \
+		"true" \
+		"$outputs" \
+		"" \
+		"chore(skills): update installed skills" \
+		"../skills-lock.json,.agents/skills/**"
+	local exit_code=$?
+	set -e
+
+	if [[ "$exit_code" -eq 0 ]]; then
+		fail "Runtime should fail when add-paths contains path traversal patterns"
+	fi
 }
 
 setup_origin_remote() {
@@ -374,6 +422,8 @@ main() {
 	[[ -x "$RUNTIME_SCRIPT" ]] || fail "Runtime script not executable: $RUNTIME_SCRIPT"
 
 	test_no_change_skips_write_stages
+	test_add_paths_normalizes_dot_slash_prefix
+	test_rejects_path_traversal_in_policy_inputs
 	test_allowed_change_creates_commit
 	test_commit_excludes_pre_staged_ignored_files
 	test_blocked_path_fails

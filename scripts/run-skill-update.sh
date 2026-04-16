@@ -38,6 +38,39 @@ csv_to_array() {
 	done
 }
 
+normalize_policy_pattern() {
+	local pattern
+	pattern=$(trim "$1")
+
+	while [[ "$pattern" == ./* ]]; do
+		pattern="${pattern#./}"
+	done
+
+	[[ -n "$pattern" ]] || fail "Path policy entries cannot be empty"
+	[[ "$pattern" != /* ]] || fail "Path policy entries must be workspace-relative: '$1'"
+	if [[ "$pattern" =~ (^|/)\.\.(/|$) ]]; then
+		fail "Path policy entries must not contain path traversal segments: '$1'"
+	fi
+
+	printf '%s' "$pattern"
+}
+
+normalize_policy_patterns() {
+	local label="$1"
+	local -n patterns_ref="$2"
+
+	local normalized=()
+	local pattern
+	for pattern in "${patterns_ref[@]}"; do
+		normalized+=("$(normalize_policy_pattern "$pattern")")
+	done
+
+	patterns_ref=("${normalized[@]}")
+	if [[ "$label" == "add-paths" && "${#patterns_ref[@]}" -eq 0 ]]; then
+		fail "add-paths cannot be empty"
+	fi
+}
+
 matches_any_glob() {
 	local path="$1"
 	shift
@@ -222,7 +255,8 @@ main() {
 	csv_to_array "$add_paths_csv" add_paths
 	csv_to_array "$ignore_paths_csv" ignore_paths
 	csv_to_array "$pr_labels_csv" pr_labels
-	[[ "${#add_paths[@]}" -gt 0 ]] || fail "add-paths cannot be empty"
+	normalize_policy_patterns "add-paths" add_paths
+	normalize_policy_patterns "ignore-paths" ignore_paths
 
 	cd "$working_directory"
 	ensure_inside_repo
