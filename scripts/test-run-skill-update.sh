@@ -271,6 +271,23 @@ test_allowed_change_creates_commit() {
 	[[ "$commit_sha" =~ ^[0-9a-f]{40}$ ]] || fail "Commit SHA should be 40 lowercase hex characters"
 }
 
+test_create_commit_disabled_skips_commit_with_allowed_changes() {
+	local workdir
+	workdir=$(mktemp -d)
+	local outputs="$workdir/outputs.txt"
+	setup_repo "$workdir"
+
+	run_runtime "$workdir" "bash -lc 'printf \"{\\\"updated\\\":true}\\n\" > skills-lock.json'" "false" "false" "true" "$outputs"
+
+	assert_contains_line "changed=true" "$outputs"
+	assert_contains_line "commit-created=false" "$outputs"
+	assert_not_contains_key "commit-sha" "$outputs"
+
+	local commit_count
+	commit_count=$(git -C "$workdir" rev-list --count HEAD)
+	assert_eq "$commit_count" "1" "Commit stage must be skipped when create-commit=false"
+}
+
 test_commit_excludes_pre_staged_ignored_files() {
 	local workdir
 	workdir=$(mktemp -d)
@@ -425,6 +442,7 @@ main() {
 	test_add_paths_normalizes_dot_slash_prefix
 	test_rejects_path_traversal_in_policy_inputs
 	test_allowed_change_creates_commit
+	test_create_commit_disabled_skips_commit_with_allowed_changes
 	test_commit_excludes_pre_staged_ignored_files
 	test_blocked_path_fails
 	test_ignored_only_change_is_non_failing
