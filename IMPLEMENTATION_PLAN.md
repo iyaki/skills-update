@@ -240,7 +240,7 @@
 - [x] Verified template stack setup and smoke test scripts exist and run path is defined.
 - [x] Verified per-template CI workflows exist for Go/JavaScript/PHP.
 - [x] Verified Dependabot and auto-merge workflows exist.
-- [ ] Fix malformed `security.yml` structure (currently missing top-level `jobs` mapping).
+- [x] Fix malformed `security.yml` structure (currently missing top-level `jobs` mapping).
 - [ ] Align action versions and workflow style consistency across template CI files where needed.
 - [ ] Add explicit verification notes for sync-template conflict paths and failure diagnostics.
 
@@ -267,6 +267,10 @@
 - 2026-04-16: bash scripts/test-run-skill-update.sh - pass
 - 2026-04-16: bash scripts/test-marketplace-workflows.sh - pass
 - 2026-04-16: bash -n scripts/test-marketplace-workflows.sh - pass
+- 2026-04-16: `bash scripts/test-marketplace-workflows.sh` - pass after fixing `security.yml` top-level `jobs` mapping and extending workflow contract checks.
+- 2026-04-16: `bash -n scripts/test-marketplace-workflows.sh` - pass.
+- 2026-04-16: `bash scripts/test-run-skill-update.sh` - pass.
+- 2026-04-16: `bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh` - pass.
 
 ## Summary
 
@@ -279,7 +283,7 @@
 | Phase 5 - Commit Feature                      | Not started | 0%         |
 | Phase 6 - Pull Request Feature                | Complete    | 100%       |
 | Phase 7 - Release and Verification Pipeline   | Partial     | 75%        |
-| Phase 8 - Cross-Repo Workflow Hardening       | Partial     | 50%        |
+| Phase 8 - Cross-Repo Workflow Hardening       | Partial     | 67%        |
 
 **Remaining effort:** 3 core action phases and 1 hardening phase are unfinished; remaining gap in release pipeline is operator/rollback documentation.
 
