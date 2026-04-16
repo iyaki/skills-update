@@ -35,6 +35,14 @@ assert_contains_line() {
 	fi
 }
 
+assert_not_contains_key() {
+	local key="$1"
+	local file="$2"
+	if grep -Eq "^${key}=" "$file"; then
+		fail "Did not expect output key '$key' in $file"
+	fi
+}
+
 setup_repo() {
 	local dir="$1"
 	git init -q "$dir"
@@ -187,8 +195,9 @@ test_no_change_skips_write_stages() {
 
 	assert_contains_line "changed=false" "$outputs"
 	assert_contains_line "commit-created=false" "$outputs"
-	assert_contains_line "pull-request-number=" "$outputs"
-	assert_contains_line "pull-request-url=" "$outputs"
+	assert_not_contains_key "commit-sha" "$outputs"
+	assert_not_contains_key "pull-request-number" "$outputs"
+	assert_not_contains_key "pull-request-url" "$outputs"
 }
 
 test_allowed_change_creates_commit() {

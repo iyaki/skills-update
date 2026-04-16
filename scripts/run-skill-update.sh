@@ -319,9 +319,15 @@ main() {
 	write_output "changed" "$changed"
 	write_multiline_output "updated-files" "$updated_files"
 	write_output "commit-created" "$commit_created"
-	write_output "commit-sha" "$commit_sha"
-	write_output "pull-request-number" "$pull_request_number"
-	write_output "pull-request-url" "$pull_request_url"
+	if [[ -n "$commit_sha" ]]; then
+		write_output "commit-sha" "$commit_sha"
+	fi
+	if [[ -n "$pull_request_number" ]]; then
+		write_output "pull-request-number" "$pull_request_number"
+	fi
+	if [[ -n "$pull_request_url" ]]; then
+		write_output "pull-request-url" "$pull_request_url"
+	fi
 	write_output "branch" "$branch"
 }
 
