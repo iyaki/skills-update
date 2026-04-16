@@ -200,7 +200,7 @@
 
 **Goal:** Implement v1 release process (`vX.Y.Z` immutable + moving `v1`) and smoke verification.
 
-**Status:** Not started
+**Status:** Partial
 
 **Paths:** `.github/workflows/release-marketplace-action.yml` (missing), `.github/workflows/smoke-marketplace-action.yml` (missing), `README.md`
 
@@ -208,9 +208,9 @@
 
 **Reference pattern:** matrix/quality workflow style in `.github/workflows/test-templates.yml`
 
-- [ ] Add smoke workflow for marketplace action scenarios (update-only, commit-enabled, pr-enabled).
-- [ ] Add release workflow gated on successful smoke/contract checks.
-- [ ] Publish immutable semver tags and move `v1` alias via validated workflow.
+- [x] Add smoke workflow for marketplace action scenarios (update-only, commit-enabled, pr-enabled).
+- [x] Add release workflow gated on successful smoke/contract checks.
+- [x] Publish immutable semver tags and move `v1` alias via validated workflow.
 - [ ] Document release operator steps and rollback strategy.
 
 **Definition of Done**
@@ -264,6 +264,9 @@
 - 2026-04-16: `bash scripts/test-run-skill-update.sh` - pass; verified no-change skip behavior, allowlisted commit creation, blocked-path failure, ignored-path non-failing flow, PR-stage commit generation default, PR output mapping, and missing-commit failure behavior when `pr-generate-commit=false`.
 - 2026-04-16: `bash -n scripts/run-skill-update.sh` - pass
 - 2026-04-16: `bash -n scripts/test-run-skill-update.sh` - pass
+- 2026-04-16: bash scripts/test-run-skill-update.sh - pass
+- 2026-04-16: bash scripts/test-marketplace-workflows.sh - pass
+- 2026-04-16: bash -n scripts/test-marketplace-workflows.sh - pass
 
 ## Summary
 
@@ -275,10 +278,10 @@
 | Phase 4 - Update Feature                      | Not started | 0%         |
 | Phase 5 - Commit Feature                      | Not started | 0%         |
 | Phase 6 - Pull Request Feature                | Complete    | 100%       |
-| Phase 7 - Release and Verification Pipeline   | Not started | 0%         |
+| Phase 7 - Release and Verification Pipeline   | Partial     | 75%        |
 | Phase 8 - Cross-Repo Workflow Hardening       | Partial     | 50%        |
 
-**Remaining effort:** 4 core action phases and 1 hardening phase are unfinished; the largest remaining gap is implementing release and smoke workflows after remaining feature/publishing contract alignment.
+**Remaining effort:** 3 core action phases and 1 hardening phase are unfinished; remaining gap in release pipeline is operator/rollback documentation.
 
 ## Known Existing Work
 
