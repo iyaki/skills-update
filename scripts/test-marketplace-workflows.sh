@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 SMOKE_WORKFLOW="$ROOT_DIR/.github/workflows/smoke-marketplace-action.yml"
 RELEASE_WORKFLOW="$ROOT_DIR/.github/workflows/release-marketplace-action.yml"
+SECURITY_WORKFLOW="$ROOT_DIR/.github/workflows/security.yml"
 
 fail() {
 	echo "Error: $*" >&2
@@ -20,6 +21,7 @@ assert_contains() {
 
 [[ -f "$SMOKE_WORKFLOW" ]] || fail "Missing smoke workflow: $SMOKE_WORKFLOW"
 [[ -f "$RELEASE_WORKFLOW" ]] || fail "Missing release workflow: $RELEASE_WORKFLOW"
+[[ -f "$SECURITY_WORKFLOW" ]] || fail "Missing security workflow: $SECURITY_WORKFLOW"
 
 assert_contains "name: smoke marketplace action" "$SMOKE_WORKFLOW"
 assert_contains "workflow_dispatch:" "$SMOKE_WORKFLOW"
@@ -35,5 +37,12 @@ assert_contains "release-tag" "$RELEASE_WORKFLOW"
 assert_contains "uses: actions/checkout@v6" "$RELEASE_WORKFLOW"
 assert_contains "bash scripts/test-run-skill-update.sh" "$RELEASE_WORKFLOW"
 assert_contains "git tag \"\$release_tag\"" "$RELEASE_WORKFLOW"
+
+assert_contains "name: quality" "$SECURITY_WORKFLOW"
+assert_contains "workflow_dispatch:" "$SECURITY_WORKFLOW"
+assert_contains "jobs:" "$SECURITY_WORKFLOW"
+assert_contains "semgrep:" "$SECURITY_WORKFLOW"
+assert_contains "uses: actions/checkout@v6" "$SECURITY_WORKFLOW"
+assert_contains "run: semgrep ci" "$SECURITY_WORKFLOW"
 
 echo "Marketplace workflow checks passed"
