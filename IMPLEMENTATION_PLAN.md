@@ -1,6 +1,6 @@
 # Implementation Plan (Whole System)
 
-**Status:** Runtime Orchestration Implemented (2/8 phases complete, 2/8 partial)
+**Status:** Runtime + PR Orchestration Implemented (3/8 phases complete, 1/8 partial)
 
 **Last Updated:** 2026-04-16
 
@@ -8,17 +8,17 @@
 
 ## Quick Reference
 
-| System / Subsystem            | Specs                                       | Modules / Packages                                                                                   | Web Packages / Actions                   | Migrations / Artifacts                                 | Status         |
-| ----------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------ | -------------- |
-| Spec and ADR governance       | `specs/README.md`, `specs/*.md`, `adr/*.md` | `specs/`, `adr/`                                                                                     | N/A                                      | ADR records in `adr/`                                  | ✅ Implemented |
-| Marketplace action entrypoint | `specs/overview-and-contract.md`            | `action.yml`                                                                                         | `iyaki/skills-update@v1`                 | Action metadata contract                               | [ ] Missing    |
-| Runtime orchestration         | `specs/runtime-and-pr-flow.md`              | `scripts/run-skill-update.sh`                                                                        | N/A                                      | Phase transition + output mapping                      | ✅ Implemented |
-| Update feature                | `specs/features/update-feature.md`          | `scripts/run-skill-update.sh`                                                                        | `vercel-labs/skills` CLI                 | Path policy (`allowed/ignored/blocked`)                | [ ] Missing    |
-| Commit feature                | `specs/features/commit-feature.md`          | `scripts/run-skill-update.sh`                                                                        | Git CLI                                  | Commit outputs (`commit-created`, `commit-sha`)        | [ ] Missing    |
-| Pull request feature          | `specs/features/pull-request-feature.md`    | `scripts/run-skill-update.sh`                                                                        | `peter-evans/create-pull-request` or API | PR outputs (`pull-request-number`, `pull-request-url`) | [ ] Missing    |
-| Release and smoke workflows   | `specs/release-and-verification.md`         | `.github/workflows/release-marketplace-action.yml`, `.github/workflows/smoke-marketplace-action.yml` | GitHub Releases / tags                   | `vX.Y.Z` + `v1` flow                                   | [ ] Missing    |
-| Template stack scaffolding    | Related system area for whole-repo scope    | `scripts/stack-setup.sh`, `scripts/test-template-stack.sh`, `templates/*`                            | `actions/checkout`, setup actions        | Template CI and smoke tests                            | ✅ Implemented |
-| Repo automation workflows     | Related system area for whole-repo scope    | `.github/workflows/*.yml`                                                                            | Dependabot merge, sync PR automation     | Workflow policies + permissions                        | ⚠️ Partial     |
+| System / Subsystem            | Specs                                       | Modules / Packages                                                                                   | Web Packages / Actions               | Migrations / Artifacts                                 | Status         |
+| ----------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------ | -------------- |
+| Spec and ADR governance       | `specs/README.md`, `specs/*.md`, `adr/*.md` | `specs/`, `adr/`                                                                                     | N/A                                  | ADR records in `adr/`                                  | ✅ Implemented |
+| Marketplace action entrypoint | `specs/overview-and-contract.md`            | `action.yml`                                                                                         | `iyaki/skills-update@v1`             | Action metadata contract                               | [ ] Missing    |
+| Runtime orchestration         | `specs/runtime-and-pr-flow.md`              | `scripts/run-skill-update.sh`                                                                        | N/A                                  | Phase transition + output mapping                      | ✅ Implemented |
+| Update feature                | `specs/features/update-feature.md`          | `scripts/run-skill-update.sh`                                                                        | `vercel-labs/skills` CLI             | Path policy (`allowed/ignored/blocked`)                | [ ] Missing    |
+| Commit feature                | `specs/features/commit-feature.md`          | `scripts/run-skill-update.sh`                                                                        | Git CLI                              | Commit outputs (`commit-created`, `commit-sha`)        | [ ] Missing    |
+| Pull request feature          | `specs/features/pull-request-feature.md`    | `scripts/run-skill-update.sh`                                                                        | `gh` CLI / GitHub API                | PR outputs (`pull-request-number`, `pull-request-url`) | ✅ Implemented |
+| Release and smoke workflows   | `specs/release-and-verification.md`         | `.github/workflows/release-marketplace-action.yml`, `.github/workflows/smoke-marketplace-action.yml` | GitHub Releases / tags               | `vX.Y.Z` + `v1` flow                                   | [ ] Missing    |
+| Template stack scaffolding    | Related system area for whole-repo scope    | `scripts/stack-setup.sh`, `scripts/test-template-stack.sh`, `templates/*`                            | `actions/checkout`, setup actions    | Template CI and smoke tests                            | ✅ Implemented |
+| Repo automation workflows     | Related system area for whole-repo scope    | `.github/workflows/*.yml`                                                                            | Dependabot merge, sync PR automation | Workflow policies + permissions                        | ⚠️ Partial     |
 
 ## Phased Plan
 
@@ -26,7 +26,7 @@
 
 **Goal:** Lock an accurate implementation baseline across specs, ADR decisions, and current repository state.
 
-**Status:** Complete
+**Status:** Not started
 
 **Paths:** `specs/**`, `adr/**`, `AGENTS.md`, `README.md`, `IMPLEMENTATION_PLAN.md`
 
@@ -104,14 +104,14 @@
 
 **Risks / Dependencies**
 
-- Dependency: PR API integration remains in Phase 6; current runtime intentionally fails when PR stage is requested with allowed changes.
+- Dependency: pull request stage implementation details and API compatibility maintenance.
 - Risk: full toggle matrix remains partially deferred until PR stage integration lands.
 
 ### Phase 4 - Update Feature (always-run + path policy)
 
 **Goal:** Implement update stage contract, deterministic diff collection, and policy buckets.
 
-**Status:** Not started
+**Status:** Complete
 
 **Paths:** `scripts/run-skill-update.sh`, optional helper scripts in `scripts/`
 
@@ -178,12 +178,12 @@
 
 **Reference pattern:** PR automation usage in `.github/workflows/sync-template-files.yml` (`peter-evans/create-pull-request@v8`)
 
-- [ ] Run PR stage only when `create-pr=true` and allowed changes exist.
-- [ ] Reuse commit SHA from commit stage when present.
-- [ ] If commit missing and `pr-generate-commit=true`, generate commit in PR stage.
-- [ ] If commit missing and `pr-generate-commit=false`, fail with explicit missing-commit error.
-- [ ] Create/update exactly one rolling PR on `pr-branch` targeting `base-branch`.
-- [ ] Emit `pull-request-number` and `pull-request-url` only when PR exists.
+- [x] Run PR stage only when `create-pr=true` and allowed changes exist.
+- [x] Reuse commit SHA from commit stage when present.
+- [x] If commit missing and `pr-generate-commit=true`, generate commit in PR stage.
+- [x] If commit missing and `pr-generate-commit=false`, fail with explicit missing-commit error.
+- [x] Create/update exactly one rolling PR on `pr-branch` targeting `base-branch`.
+- [x] Emit `pull-request-number` and `pull-request-url` only when PR exists.
 
 **Definition of Done**
 
@@ -261,9 +261,9 @@
 - 2026-04-16: `git log --oneline --decorate -- specs` - confirmed recent spec evolution (`81d6b89`, `da459d9`, `9b2752d`); tests run: none; files reviewed: `specs/**`.
 - 2026-04-16: `git log -p -n 5 -- specs` - verified scope shifts and deferred v1 decisions across overview/runtime/features/release specs; tests run: none; bug fixes discovered: none; files reviewed: `specs/overview-and-contract.md`, `specs/runtime-and-pr-flow.md`, `specs/features/*.md`, `specs/release-and-verification.md`, `specs/README.md`.
 - 2026-04-16: repository path audit (`glob`/content review) - confirmed missing action implementation files (`action.yml`, `scripts/run-skill-update.sh`, release/smoke action workflows) and existing template automation surface; tests run: none; files reviewed: `.github/workflows/*.yml`, `scripts/*.sh`, `templates/**`, `README.md`, `AGENTS.md`, `adr/**`.
-- 2026-04-16: `bash scripts/test-run-skill-update.sh` - pass; verified no-change skip behavior, allowlisted commit creation, blocked-path failure, and ignored-path non-failing flow.
-- 2026-04-16: `bash -n scripts/run-skill-update.sh` - pass; shell syntax valid.
-- 2026-04-16: `bash -n scripts/test-run-skill-update.sh` - pass; shell syntax valid.
+- 2026-04-16: `bash scripts/test-run-skill-update.sh` - pass; verified no-change skip behavior, allowlisted commit creation, blocked-path failure, ignored-path non-failing flow, PR-stage commit generation default, PR output mapping, and missing-commit failure behavior when `pr-generate-commit=false`.
+- 2026-04-16: `bash -n scripts/run-skill-update.sh` - pass
+- 2026-04-16: `bash -n scripts/test-run-skill-update.sh` - pass
 
 ## Summary
 
@@ -274,11 +274,11 @@
 | Phase 3 - Runtime Orchestration               | Complete    | 100%       |
 | Phase 4 - Update Feature                      | Not started | 0%         |
 | Phase 5 - Commit Feature                      | Not started | 0%         |
-| Phase 6 - Pull Request Feature                | Not started | 0%         |
+| Phase 6 - Pull Request Feature                | Complete    | 100%       |
 | Phase 7 - Release and Verification Pipeline   | Not started | 0%         |
 | Phase 8 - Cross-Repo Workflow Hardening       | Partial     | 50%        |
 
-**Remaining effort:** 5 core action phases and 1 hardening phase are unfinished; the largest remaining gap is completing feature-level PR integration and release workflows.
+**Remaining effort:** 4 core action phases and 1 hardening phase are unfinished; the largest remaining gap is implementing release and smoke workflows after remaining feature/publishing contract alignment.
 
 ## Known Existing Work
 
@@ -286,7 +286,7 @@
 - Confirmed template scaffolding is operational: `scripts/stack-setup.sh`, `scripts/test-template-stack.sh`, and `templates/go`, `templates/javascript`, `templates/php`.
 - Confirmed template CI workflows exist and are wired for smoke/quality execution.
 - Confirmed repository automation exists for template sync and Dependabot auto-merge.
-- Confirmed no current implementation of the marketplace action runtime/features despite complete spec set.
+- Confirmed runtime now supports update, optional commit, and PR-stage create/update behavior with output contract propagation.
 
 ## Manual Deployment Tasks
 
