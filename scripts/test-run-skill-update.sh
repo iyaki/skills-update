@@ -64,6 +64,7 @@ run_runtime() {
 	local pr_generate_commit="$5"
 	local output_file="$6"
 	local path_prefix="${7:-}"
+	local commit_message="${8:-chore(skills): update installed skills}"
 
 	(
 		cd "$ROOT_DIR"
@@ -81,7 +82,7 @@ run_runtime() {
 			INPUT_ADD_PATHS="skills-lock.json,.agents/skills/**" \
 			INPUT_IGNORE_PATHS=".agents/.skill-lock.json" \
 			INPUT_CREATE_COMMIT="$create_commit" \
-			INPUT_COMMIT_MESSAGE="chore(skills): update installed skills" \
+			INPUT_COMMIT_MESSAGE="$commit_message" \
 			INPUT_CREATE_PR="$create_pr" \
 			INPUT_PR_GENERATE_COMMIT="$pr_generate_commit" \
 			INPUT_BASE_BRANCH="" \
@@ -353,6 +354,22 @@ test_default_update_command_uses_skills_cli_version() {
 	assert_contains_line "skills-lock.json" "$outputs"
 }
 
+test_commit_message_is_configurable() {
+	local workdir
+	workdir=$(mktemp -d)
+	local outputs="$workdir/outputs.txt"
+	setup_repo "$workdir"
+
+	run_runtime "$workdir" "bash -lc 'printf \"{\\\"updated\\\":true}\\n\" > skills-lock.json'" "true" "false" "true" "$outputs" "" "chore(skills): custom message"
+
+	assert_contains_line "changed=true" "$outputs"
+	assert_contains_line "commit-created=true" "$outputs"
+
+	local latest_message
+	latest_message=$(git -C "$workdir" log -1 --pretty=%s)
+	assert_eq "$latest_message" "chore(skills): custom message" "Commit stage should use provided commit message"
+}
+
 main() {
 	[[ -x "$RUNTIME_SCRIPT" ]] || fail "Runtime script not executable: $RUNTIME_SCRIPT"
 
@@ -364,6 +381,7 @@ main() {
 	test_pr_stage_creates_pr_and_emits_outputs
 	test_pr_stage_fails_without_commit_when_generation_disabled
 	test_default_update_command_uses_skills_cli_version
+	test_commit_message_is_configurable
 
 	echo "Runtime orchestration tests passed"
 }
