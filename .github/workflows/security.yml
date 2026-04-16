@@ -21,7 +21,8 @@ jobs:
     if: (github.actor != 'dependabot[bot]')
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v6
       - run: semgrep ci
         env:
           # Connect to Semgrep AppSec Platform through your SEMGREP_APP_TOKEN.
