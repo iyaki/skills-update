@@ -242,7 +242,7 @@
 - [x] Verified Dependabot and auto-merge workflows exist.
 - [x] Fix malformed `security.yml` structure (currently missing top-level `jobs` mapping).
 - [ ] Align action versions and workflow style consistency across template CI files where needed.
-- [ ] Add explicit verification notes for sync-template conflict paths and failure diagnostics.
+- [x] Add explicit verification notes for sync-template conflict paths and failure diagnostics.
 
 **Definition of Done**
 
@@ -276,6 +276,8 @@
 - 2026-04-16: `bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh` - pass.
 - 2026-04-16: bash scripts/test-run-skill-update.sh - pass after adding regression coverage for pre-staged ignored file exclusion from commit contents.
 - 2026-04-16: bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh - pass.
+- 2026-04-16: bash scripts/test-marketplace-workflows.sh - pass after adding sync-template conflict diagnostics assertions and README verification notes checks.
+- 2026-04-16: bash -n scripts/test-marketplace-workflows.sh - pass.
 
 ## Summary
 
@@ -288,7 +290,7 @@
 | Phase 5 - Commit Feature                      | Partial     | 20%        |
 | Phase 6 - Pull Request Feature                | Complete    | 100%       |
 | Phase 7 - Release and Verification Pipeline   | Complete    | 100%       |
-| Phase 8 - Cross-Repo Workflow Hardening       | Partial     | 67%        |
+| Phase 8 - Cross-Repo Workflow Hardening       | Partial     | 83%        |
 
 **Remaining effort:** 2 core action phases and 1 hardening phase are unfinished.
 
