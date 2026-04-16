@@ -1,6 +1,6 @@
 # Implementation Plan (Whole System)
 
-**Status:** Runtime + PR Orchestration Implemented (4/8 phases complete, 1/8 partial)
+**Status:** Action Contract + Runtime + PR Orchestration Implemented (5/8 phases complete, 1/8 partial)
 
 **Last Updated:** 2026-04-16
 
@@ -11,7 +11,7 @@
 | System / Subsystem            | Specs                                       | Modules / Packages                                                                                   | Web Packages / Actions               | Migrations / Artifacts                                 | Status         |
 | ----------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------ | -------------- |
 | Spec and ADR governance       | `specs/README.md`, `specs/*.md`, `adr/*.md` | `specs/`, `adr/`                                                                                     | N/A                                  | ADR records in `adr/`                                  | ✅ Implemented |
-| Marketplace action entrypoint | `specs/overview-and-contract.md`            | `action.yml`                                                                                         | `iyaki/skills-update@v1`             | Action metadata contract                               | [ ] Missing    |
+| Marketplace action entrypoint | `specs/overview-and-contract.md`            | `action.yml`                                                                                         | `iyaki/skills-update@v1`             | Action metadata contract                               | ✅ Implemented |
 | Runtime orchestration         | `specs/runtime-and-pr-flow.md`              | `scripts/run-skill-update.sh`                                                                        | N/A                                  | Phase transition + output mapping                      | ✅ Implemented |
 | Update feature                | `specs/features/update-feature.md`          | `scripts/run-skill-update.sh`                                                                        | `vercel-labs/skills` CLI             | Path policy (`allowed/ignored/blocked`)                | [ ] Missing    |
 | Commit feature                | `specs/features/commit-feature.md`          | `scripts/run-skill-update.sh`                                                                        | Git CLI                              | Commit outputs (`commit-created`, `commit-sha`)        | [ ] Missing    |
@@ -26,7 +26,7 @@
 
 **Goal:** Lock an accurate implementation baseline across specs, ADR decisions, and current repository state.
 
-**Status:** Not started
+**Status:** Complete
 
 **Paths:** `specs/**`, `adr/**`, `AGENTS.md`, `README.md`, `IMPLEMENTATION_PLAN.md`
 
@@ -62,10 +62,10 @@
 
 **Reference pattern:** existing workflow metadata style in `.github/workflows/test-templates.yml`
 
-- [ ] Create `action.yml` with all required inputs: `github-token`, `working-directory`, `skills-cli-version`, `update-command`, `add-paths`, `ignore-paths`, `create-commit`, `commit-message`, `create-pr`, `pr-generate-commit`, `base-branch`, `pr-branch`, `pr-title`, `pr-labels`.
-- [ ] Define outputs: `changed`, `updated-files`, `commit-created`, `commit-sha`, `pull-request-number`, `pull-request-url`, `branch`.
-- [ ] Wire action execution to runtime script with deterministic environment defaults.
-- [ ] Add usage examples aligned with `uses: iyaki/skills-update@v1`.
+- [x] Create `action.yml` with all required inputs: `github-token`, `working-directory`, `skills-cli-version`, `update-command`, `add-paths`, `ignore-paths`, `create-commit`, `commit-message`, `create-pr`, `pr-generate-commit`, `base-branch`, `pr-branch`, `pr-title`, `pr-labels`.
+- [x] Define outputs: `changed`, `updated-files`, `commit-created`, `commit-sha`, `pull-request-number`, `pull-request-url`, `branch`.
+- [x] Wire action execution to runtime script with deterministic environment defaults.
+- [x] Add usage examples aligned with `uses: iyaki/skills-update@v1`.
 
 **Definition of Done**
 
@@ -272,13 +272,15 @@
 - 2026-04-16: `bash scripts/test-run-skill-update.sh` - pass.
 - 2026-04-16: `bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh` - pass.
 - 2026-04-16: `bash scripts/test-marketplace-workflows.sh` - pass after adding release operator and rollback documentation in `README.md`.
+- 2026-04-16: `bash scripts/test-run-skill-update.sh` - pass; validated runtime behavior including default `update-command` fallback derived from `skills-cli-version` and existing no-change/blocked/PR flows.
+- 2026-04-16: `bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh` - pass.
 
 ## Summary
 
 | Phase                                         | Status      | Completion |
 | --------------------------------------------- | ----------- | ---------- |
 | Phase 1 - Baseline and Spec/ADR Alignment     | Complete    | 100%       |
-| Phase 2 - Marketplace Action Contract Surface | Not started | 0%         |
+| Phase 2 - Marketplace Action Contract Surface | Complete    | 100%       |
 | Phase 3 - Runtime Orchestration               | Complete    | 100%       |
 | Phase 4 - Update Feature                      | Not started | 0%         |
 | Phase 5 - Commit Feature                      | Not started | 0%         |
@@ -286,7 +288,7 @@
 | Phase 7 - Release and Verification Pipeline   | Complete    | 100%       |
 | Phase 8 - Cross-Repo Workflow Hardening       | Partial     | 67%        |
 
-**Remaining effort:** 3 core action phases and 1 hardening phase are unfinished.
+**Remaining effort:** 2 core action phases and 1 hardening phase are unfinished.
 
 ## Known Existing Work
 
