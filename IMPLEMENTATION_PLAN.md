@@ -54,7 +54,7 @@
 
 **Goal:** Implement action entrypoint and I/O contract defined in overview spec.
 
-**Status:** Not started
+**Status:** Partial
 
 **Paths:** `action.yml` (missing), `README.md` (consumer usage section)
 
@@ -150,7 +150,7 @@
 **Reference pattern:** existing repository git hygiene constraints in `opencode.jsonc`
 
 - [ ] Run commit stage only when `create-commit=true` and allowed changes exist.
-- [ ] Stage only allowlisted files produced by update policy.
+- [x] Stage only allowlisted files produced by update policy.
 - [ ] Create exactly one commit with configurable `commit-message`.
 - [ ] Emit `commit-created` and `commit-sha` only when commit exists.
 - [ ] Skip commit stage cleanly when disabled or no allowed changes.
@@ -274,6 +274,8 @@
 - 2026-04-16: `bash scripts/test-marketplace-workflows.sh` - pass after adding release operator and rollback documentation in `README.md`.
 - 2026-04-16: `bash scripts/test-run-skill-update.sh` - pass; validated runtime behavior including default `update-command` fallback derived from `skills-cli-version` and existing no-change/blocked/PR flows.
 - 2026-04-16: `bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh` - pass.
+- 2026-04-16: bash scripts/test-run-skill-update.sh - pass after adding regression coverage for pre-staged ignored file exclusion from commit contents.
+- 2026-04-16: bash -n scripts/run-skill-update.sh && bash -n scripts/test-run-skill-update.sh - pass.
 
 ## Summary
 
@@ -283,7 +285,7 @@
 | Phase 2 - Marketplace Action Contract Surface | Complete    | 100%       |
 | Phase 3 - Runtime Orchestration               | Complete    | 100%       |
 | Phase 4 - Update Feature                      | Not started | 0%         |
-| Phase 5 - Commit Feature                      | Not started | 0%         |
+| Phase 5 - Commit Feature                      | Partial     | 20%        |
 | Phase 6 - Pull Request Feature                | Complete    | 100%       |
 | Phase 7 - Release and Verification Pipeline   | Complete    | 100%       |
 | Phase 8 - Cross-Repo Workflow Hardening       | Partial     | 67%        |
@@ -300,6 +302,4 @@
 
 ## Manual Deployment Tasks
 
-- Enable repository Actions setting: allow workflows to create/approve pull requests (required by automation and future PR-stage behavior).
-- Configure `SEMGREP_APP_TOKEN` secret before enabling/using Semgrep workflow execution.
-- Configure release permissions for tag and release publication before first `vX.Y.Z` and `v1` publish.
+- None
