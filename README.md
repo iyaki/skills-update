@@ -1,22 +1,34 @@
+<div align="center">
+
 # Skills Update Action
 
 [![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-skills--update-blue?logo=github)](https://github.com/marketplace?type=actions&query=skills+update)
 [![Smoke Tests](https://img.shields.io/github/actions/workflow/status/iyaki/skills-update/smoke-marketplace-action.yml?label=smoke%20tests)](https://github.com/iyaki/skills-update/actions/workflows/smoke-marketplace-action.yml)
 [![Latest Release](https://img.shields.io/github/v/release/iyaki/skills-update?label=latest%20release)](https://github.com/iyaki/skills-update/releases)
 
-Keep your repository agent skills up to date with a single GitHub Action.
+Keep repository agent skills up to date with one GitHub Action.
 
-`iyaki/skills-update` runs skill updates, enforces path safety, and can optionally create a commit and maintain a rolling pull request for human review.
+[Get started](#get-started) • [How it works](#how-it-works) • [Inputs](#inputs) • [Outputs](#outputs) • [Recipes](#recipes) • [Validation](#validation)
+
+</div>
+
+`iyaki/skills-update` runs a non-interactive skills update command in CI, enforces a path safety policy, and can create a commit and a single rolling pull request for review.
+
+> [!IMPORTANT]
+> The action fails closed when the update command changes files outside your allowlisted paths.
+
+> [!NOTE]
+> The default flow is human-reviewed automation: update files, optionally commit them, and optionally keep one rolling PR up to date. It does not auto-merge.
 
 ## Why use this action
 
-- Runs skill maintenance in CI with non-interactive defaults.
-- Limits writes to allowlisted paths and blocks unexpected file changes.
-- Supports update-only, commit-only, and commit+PR workflows.
-- Emits outputs you can use for workflow branching and notifications.
-- Designed for predictable, human-reviewed automation.
+- Runs skills maintenance on a schedule or on demand.
+- Restricts writes to explicit paths instead of trusting every changed file.
+- Supports read-only, commit-only, and rolling-PR workflows.
+- Exposes simple outputs for downstream workflow branching.
+- Keeps approval and merge decisions with maintainers.
 
-## Marketplace usage
+## Get started
 
 ```yaml
 name: update agent skills
@@ -34,52 +46,95 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Update skills
+      - name: Update skills and open pull request
         id: skills
         uses: iyaki/skills-update@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+You can omit `github-token` if the default `github.token` has the permissions you need.
+
+> [!TIP]
+> Use `@v1` for the stable major line. Pin to `@vX.Y.Z` when you need an immutable release.
+
+## How it works
+
+1. Runs the update stage in `working-directory`.
+2. Collects changed files and classifies them as `allowed`, `ignored`, or `blocked`.
+3. Fails the run before any write stage if a blocked path changed.
+4. Creates one commit when `create-commit=true` and allowed changes exist.
+5. Creates or updates one rolling pull request when `create-pr=true`.
+
+### Path policy
+
+- `allowed`: files that may be committed and included in the PR.
+- `ignored`: files that do not fail the run and are excluded from write stages.
+- `blocked`: files that fail the run immediately.
+
+### Behavior notes
+
+- The update stage always runs.
+- If `update-command` is empty, the action uses `npx --yes skills@<skills-cli-version> experimental_install -y`.
+- `working-directory` must exist and be inside a git repository.
+
+> [!IMPORTANT]
+> Keep `add-paths` narrow and explicit. Avoid broad globs that could permit unintended writes.
+
 ## Inputs
 
-| Input                | Required | Default                                  | Description                                                                                                        |
-| -------------------- | -------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `github-token`       | no       | `github.token`                           | Token used for repository and pull request write operations. Defaults to `github.token` when omitted.              |
-| `working-directory`  | no       | `.`                                      | Directory where update and git operations run.                                                                     |
-| `skills-cli-version` | no       | `latest`                                 | Version of the skills CLI used by default update command.                                                          |
-| `update-command`     | no       | `""`                                     | Custom non-interactive update command. If empty, action uses `npx --yes skills@<version> experimental_install -y`. |
-| `add-paths`          | no       | `skills-lock.json,.agents/skills/**`     | Comma-separated allowlist globs for changed files.                                                                 |
-| `ignore-paths`       | no       | `.agents/.skill-lock.json`               | Comma-separated ignore globs excluded from write stages.                                                           |
-| `create-commit`      | no       | `true`                                   | Enables commit stage.                                                                                              |
-| `commit-message`     | no       | `chore(skills): update installed skills` | Commit message used for generated commits.                                                                         |
-| `create-pr`          | no       | `true`                                   | Enables pull request stage.                                                                                        |
-| `pr-generate-commit` | no       | `true`                                   | Allows PR stage to generate commit if none exists yet.                                                             |
-| `base-branch`        | no       | `""`                                     | Pull request base branch. If empty, repository default branch is used.                                             |
-| `pr-branch`          | no       | `chore/skills-update`                    | Branch used for rolling pull request updates.                                                                      |
-| `pr-title`           | no       | `chore(skills): update installed skills` | Title used when creating/updating pull request.                                                                    |
-| `pr-labels`          | no       | `chore,automation`                       | Comma-separated labels added to pull request.                                                                      |
+All inputs are optional.
+
+### General
+
+| Input                | Default                              | Description                                                                                           |
+| -------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `github-token`       | `github.token`                       | Token used for commit, push, and PR operations.                                                       |
+| `working-directory`  | `.`                                  | Directory where update and git operations run.                                                        |
+| `skills-cli-version` | `latest`                             | Version used in the default update command.                                                           |
+| `update-command`     | `""`                                 | Custom non-interactive update command. When omitted, the action uses the default command shown above. |
+| `add-paths`          | `skills-lock.json,.agents/skills/**` | Comma-separated globs for files that are allowed to change.                                           |
+| `ignore-paths`       | `.agents/.skill-lock.json`           | Comma-separated globs for files that are ignored and excluded from write stages.                      |
+
+### Commit
+
+| Input            | Default                                  | Description                           |
+| ---------------- | ---------------------------------------- | ------------------------------------- |
+| `create-commit`  | `true`                                   | Enables the commit stage.             |
+| `commit-message` | `chore(skills): update installed skills` | Commit message for generated commits. |
+
+### Pull request
+
+| Input                | Default                                  | Description                                                      |
+| -------------------- | ---------------------------------------- | ---------------------------------------------------------------- |
+| `create-pr`          | `true`                                   | Enables the pull request stage.                                  |
+| `base-branch`        | repository default                       | Target branch for the PR.                                        |
+| `pr-branch`          | `chore/skills-update`                    | Branch used for the rolling pull request.                        |
+| `pr-title`           | `chore(skills): update installed skills` | Title used when creating or updating the pull request.           |
+| `pr-labels`          | `chore,automation`                       | Comma-separated labels applied to the pull request.              |
 
 ## Outputs
 
-| Output                | Description                                             |
-| --------------------- | ------------------------------------------------------- |
-| `changed`             | `true` if allowlisted files changed, otherwise `false`. |
-| `updated-files`       | Newline-delimited allowlisted changed files.            |
-| `commit-created`      | `true` if a commit was created in this run.             |
-| `commit-sha`          | Commit SHA when commit was created.                     |
-| `pull-request-number` | Pull request number when PR exists.                     |
-| `pull-request-url`    | Pull request URL when PR exists.                        |
-| `branch`              | Branch used for commit/PR stages.                       |
+All outputs are strings.
 
-## Common recipes
+| Output                | Description                                                                       |
+| --------------------- | --------------------------------------------------------------------------------- |
+| `changed`             | `true` when at least one allowlisted file changed, otherwise `false`.             |
+| `updated-files`       | Newline-delimited list of allowlisted changed files.                              |
+| `commit-created`      | `true` when this run created a commit.                                            |
+| `commit-sha`          | Commit SHA when a commit was created.                                             |
+| `pull-request-number` | Pull request number when a PR exists.                                             |
+| `pull-request-url`    | Pull request URL when a PR exists.                                                |
+| `branch`              | The configured `pr-branch` when PR mode is enabled, otherwise the current branch. |
 
-### Update only (no writes)
+## Recipes
+
+### Update only (no branch writes)
 
 ```yaml
 - name: Update skills files only
@@ -94,7 +149,7 @@ jobs:
 ### Create commit only
 
 ```yaml
-- name: Update skills and commit
+- name: Update skills and create a commit
   id: skills
   uses: iyaki/skills-update@v1
   with:
@@ -106,23 +161,35 @@ jobs:
 ### Rolling PR maintenance
 
 ```yaml
-- name: Update skills and open/update PR
+- name: Update skills and open or refresh a PR
   id: skills
   uses: iyaki/skills-update@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     create-commit: true
     create-pr: true
-    pr-generate-commit: true
     pr-branch: chore/skills-update
     pr-title: "chore(skills): update installed skills"
     pr-labels: chore,automation
 ```
 
+### Use a custom update command
+
+```yaml
+- name: Run a pinned update command
+  id: skills
+  uses: iyaki/skills-update@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    update-command: npx --yes skills@1.2.3 experimental_install -y
+    create-commit: false
+    create-pr: false
+```
+
 ### Restrict writable paths
 
 ```yaml
-- name: Update skills with strict path policy
+- name: Update skills with a strict path policy
   id: skills
   uses: iyaki/skills-update@v1
   with:
@@ -133,11 +200,9 @@ jobs:
 
 ## Permissions
 
-- Minimum for update-only runs: `contents: read`
-- For commit and PR stages: `contents: write`
-- For PR creation/labeling: `pull-requests: write`
-
-Example:
+- Update-only runs: `contents: read`
+- Commit creation or branch updates: `contents: write`
+- Pull request creation or labeling: `pull-requests: write`
 
 ```yaml
 permissions:
@@ -145,46 +210,18 @@ permissions:
   pull-requests: write
 ```
 
-## Behavior notes
+## Validation
 
-- The update stage always runs.
-- Changed files are split into `allowed`, `ignored`, and `blocked` buckets.
-- Any blocked file change fails the run before commit/PR stages.
-- Ignored files do not fail the run and are excluded from write stages.
-- If `create-pr=true` and no commit exists, PR stage can create one when `pr-generate-commit=true`.
+Verification and diagnostics:
 
-## Security and safety
+- Runtime smoke tests: `bash scripts/test-run-skill-update.sh`
+- Workflow and README contract checks: `bash scripts/test-marketplace-workflows.sh`
+- Script syntax checks: `bash -n scripts/run-skill-update.sh`
+- Failed workflow logs: `gh run view <run-id> --log-failed`
 
-- Keep `add-paths` narrow and explicit.
-- Avoid broad globs that could permit unintended writes.
-- Use GitHub-provided `GITHUB_TOKEN` unless you need custom scopes.
-- Review generated pull requests before merge.
+## Release model
 
-## Verification and diagnostics
-
-- Run the runtime test suite locally:
-
-```sh
-bash scripts/test-run-skill-update.sh
-```
-
-- Run workflow contract checks locally:
-
-```sh
-bash scripts/test-marketplace-workflows.sh
-```
-
-- Inspect failed workflow logs:
-
-```sh
-gh run view <run-id> --log-failed
-```
-
-## Versioning
-
-- Use `@v1` for stable major-version updates.
-- Pin to a full tag (`@vX.Y.Z`) when you need immutable behavior for regulated environments.
-
-## License
-
-MIT
+- Consume `iyaki/skills-update@v1` for the stable major line.
+- Releases are published as immutable `vX.Y.Z` tags.
+- The release workflow moves the `v1` tag after smoke and contract checks pass.
+- Pin to a full tag when you need immutable behavior across regulated or tightly controlled environments.
