@@ -50,7 +50,7 @@ jobs:
 
 | Input                | Required | Default                                  | Description                                                                                                        |
 | -------------------- | -------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `github-token`       | yes      | n/a                                      | Token used for repository and pull request write operations.                                                       |
+| `github-token`       | no       | `github.token`                           | Token used for repository and pull request write operations. Defaults to `github.token` when omitted.              |
 | `working-directory`  | no       | `.`                                      | Directory where update and git operations run.                                                                     |
 | `skills-cli-version` | no       | `latest`                                 | Version of the skills CLI used by default update command.                                                          |
 | `update-command`     | no       | `""`                                     | Custom non-interactive update command. If empty, action uses `npx --yes skills@<version> experimental_install -y`. |

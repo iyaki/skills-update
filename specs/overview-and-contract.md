@@ -104,7 +104,7 @@ Status: Proposed
 
 ```ts
 type ActionInput = {
-	githubToken: string;
+	githubToken?: string;
 	workingDirectory: string;
 	skillsCliVersion: string;
 	updateCommand: string;
@@ -191,6 +191,7 @@ type ExecutionState = {
 - `contents: write` when commit and/or pull request stages may write branches.
 - `pull-requests: write` when pull request stage is enabled.
 - `contents: read` for read-only update runs.
+- If `github-token` input is omitted, the action defaults to `github.token`.
 
 ### Request/response payloads
 

@@ -5,7 +5,8 @@ author: iyaki
 inputs:
   github-token:
     description: GitHub token used for repository and pull request write operations.
-    required: true
+    required: false
+    default: ""
   working-directory:
     description: Directory where update and git operations run.
     required: false
@@ -89,7 +90,7 @@ runs:
       id: run
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_TOKEN: ${{ inputs.github-token || github.token }}
         INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
         INPUT_SKILLS_CLI_VERSION: ${{ inputs.skills-cli-version }}
         INPUT_UPDATE_COMMAND: ${{ inputs.update-command }}
