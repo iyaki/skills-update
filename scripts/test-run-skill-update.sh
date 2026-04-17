@@ -79,7 +79,7 @@ run_runtime() {
 			PATH="$runtime_path" \
 			GITHUB_REPOSITORY="octo/example" \
 			INPUT_WORKING_DIRECTORY="$repo_dir" \
-			INPUT_SKILLS_CLI_VERSION="0.11.0" \
+			INPUT_SKILLS_CLI_VERSION="latest" \
 			INPUT_UPDATE_COMMAND="$update_command" \
 			INPUT_ADD_PATHS="$add_paths" \
 			INPUT_IGNORE_PATHS="$ignore_paths" \

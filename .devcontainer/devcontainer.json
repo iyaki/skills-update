@@ -4,7 +4,8 @@
 
 	"runArgs": [
 		"--userns=keep-id", // For podman users, to avoid permission issues with bind mountson on rootless mode.
-		"--env-file", "${localWorkspaceFolder}/.env"
+		"--env-file", "${localWorkspaceFolder}/.env",
+		"--cpus=3"
 		// "--memory", "8g"
 	],
 

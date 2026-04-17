@@ -203,8 +203,8 @@ Request example:
   id: skills
   uses: iyaki/skills-update@v1
   with:
-    skills-cli-version: 0.11.0
-    update-command: npx --yes skills@0.11.0 update -p -y
+    skills-cli-version: latest
+    update-command: npx --yes skills@latest update -p -y
     add-paths: skills-lock.json,.agents/skills/**
     ignore-paths: .agents/.skill-lock.json
 ```

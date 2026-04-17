@@ -13,7 +13,7 @@ inputs:
   skills-cli-version:
     description: Version of the skills CLI to use in default update command.
     required: false
-    default: 0.11.0
+    default: latest
   update-command:
     description: Optional non-interactive command used to update skills.
     required: false

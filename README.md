@@ -1,145 +1,85 @@
-# AI Driven Development Project Template
+# Skills Update Action
 
-A practical starter template for builders using OpenCode and Ralph in a containerized Spec-Driven Development workflow.
+[![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-skills--update-blue?logo=github)](https://github.com/marketplace?type=actions&query=skills+update)
+[![Smoke Tests](https://img.shields.io/github/actions/workflow/status/iyaki/skills-update/smoke-marketplace-action.yml?label=smoke%20tests)](https://github.com/iyaki/skills-update/actions/workflows/smoke-marketplace-action.yml)
+[![Latest Release](https://img.shields.io/github/v/release/iyaki/skills-update?label=latest%20release)](https://github.com/iyaki/skills-update/releases)
 
-This repository gives sensible defaults, guardrails, and batteries-included tooling so you can clone, open, and ship quickly.
+Keep your repository agent skills up to date with a single GitHub Action.
 
-## Why this template exists
+`iyaki/skills-update` runs skill updates, enforces path safety, and can optionally create a commit and maintain a rolling pull request for human review.
 
-- Standardize a fast, consistent AI-assisted workflow across local and CI.
-- Make quality and security checks easy to adopt from day one.
-- Provide a reusable baseline for building and shipping across different stacks.
+## Why use this action
 
-## What you get out of the box
+- Runs skill maintenance in CI with non-interactive defaults.
+- Limits writes to allowlisted paths and blocks unexpected file changes.
+- Supports update-only, commit-only, and commit+PR workflows.
+- Emits outputs you can use for workflow branching and notifications.
+- Designed for predictable, human-reviewed automation.
 
-### 1) Dev environment defaults
+## Marketplace usage
 
-- Devcontainer based on the universal image.
-- Preinstalled tools/features:
-  - OpenCode
-  - Ralph
-  - Lefthook (git hooks manager)
-- VS Code extensions preconfigured:
-  - OpenCode extension
-  - EditorConfig
-  - Gremlins (invisible-character detector)
-- Host config mounts for OpenCode state and GitHub CLI config.
-- Auto setup on initialize/post-create/post-start:
-  - Creates local OpenCode and GH config directories if missing.
-  - Installs git hooks via Lefthook.
-  - Refreshes available OpenCode models.
+```yaml
+name: update agent skills
 
-### 2) Agent and workflow defaults
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
 
-- OpenCode config includes a dedicated Ralph-compatible agent mode.
-- Default Ralph loop settings:
-  - max iterations set
-  - logs enabled to logs/ralph.log
-  - specs directory wired to specs/
-  - OpenCode selected as agent backend
-- Permission guardrails in OpenCode config to reduce risky edits.
-  - Blocks bypass-style commit patterns (for example, no-verify commit flows).
-  - Restricts editing sensitive paths like git internals, logs, and selected config files.
-- Plugin defaults enabled for environment safety and quota visibility.
-  - envsitter-guard
-  - @slkiser/opencode-quota
+permissions:
+  contents: write
+  pull-requests: write
 
-### 3) MCP server integrations
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-The template includes preconfigured MCP entries you can enable/disable per project.
-These are available for agent workflows through OpenCode configuration and compatible MCP-aware tooling in your workspace.
+      - name: Update skills
+        id: skills
+        uses: iyaki/skills-update@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+```
 
-Enabled by default:
+## Inputs
 
-- Context7
-- open-websearch with DuckDuckGo
-- grep.app MCP
-- gitmcp
+| Input                | Required | Default                                  | Description                                                                                                        |
+| -------------------- | -------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `github-token`       | yes      | n/a                                      | Token used for repository and pull request write operations.                                                       |
+| `working-directory`  | no       | `.`                                      | Directory where update and git operations run.                                                                     |
+| `skills-cli-version` | no       | `latest`                                 | Version of the skills CLI used by default update command.                                                          |
+| `update-command`     | no       | `""`                                     | Custom non-interactive update command. If empty, action uses `npx --yes skills@<version> experimental_install -y`. |
+| `add-paths`          | no       | `skills-lock.json,.agents/skills/**`     | Comma-separated allowlist globs for changed files.                                                                 |
+| `ignore-paths`       | no       | `.agents/.skill-lock.json`               | Comma-separated ignore globs excluded from write stages.                                                           |
+| `create-commit`      | no       | `true`                                   | Enables commit stage.                                                                                              |
+| `commit-message`     | no       | `chore(skills): update installed skills` | Commit message used for generated commits.                                                                         |
+| `create-pr`          | no       | `true`                                   | Enables pull request stage.                                                                                        |
+| `pr-generate-commit` | no       | `true`                                   | Allows PR stage to generate commit if none exists yet.                                                             |
+| `base-branch`        | no       | `""`                                     | Pull request base branch. If empty, repository default branch is used.                                             |
+| `pr-branch`          | no       | `chore/skills-update`                    | Branch used for rolling pull request updates.                                                                      |
+| `pr-title`           | no       | `chore(skills): update installed skills` | Title used when creating/updating pull request.                                                                    |
+| `pr-labels`          | no       | `chore,automation`                       | Comma-separated labels added to pull request.                                                                      |
 
-Included but disabled by default:
+## Outputs
 
-- Scrapling via Docker
-- Data Commons; requires DATACOMMONS_API_KEY
-- async-bash-mcp
+| Output                | Description                                             |
+| --------------------- | ------------------------------------------------------- |
+| `changed`             | `true` if allowlisted files changed, otherwise `false`. |
+| `updated-files`       | Newline-delimited allowlisted changed files.            |
+| `commit-created`      | `true` if a commit was created in this run.             |
+| `commit-sha`          | Commit SHA when commit was created.                     |
+| `pull-request-number` | Pull request number when PR exists.                     |
+| `pull-request-url`    | Pull request URL when PR exists.                        |
+| `branch`              | Branch used for commit/PR stages.                       |
 
-### 4) Skills included
+## Common recipes
 
-This template ships with a curated starter skill set:
-
-- code-search: Symbol lookup workflow using Repomix snapshots.
-- dev-browser: Browser automation and UI verification using agent-browser.
-- frontend-design: High-quality, production-grade frontend design guidance.
-- reddit: Fetch/search subreddit posts and metadata through Reddit public JSON APIs.
-- shell-command: Non-interactive shell execution strategy for agent reliability.
-- skill-creator: Build and package new reusable skills.
-- spec-creator: Generate technical specs compatible with Ralph workflows.
-
-### 5) Repository defaults and quality baseline
-
-- Editor and formatting standards via EditorConfig.
-- Git hygiene defaults via .gitignore.
-- Dependabot configured for:
-  - Devcontainer updates
-  - npm updates
-- Dependabot auto-merge workflow included for minor updates.
-- Security workflow template included for Semgrep (requires SEMGREP_APP_TOKEN secret).
-
-### 6) Enabling automatic Dependabot merge
-
-This template includes [.github/workflows/dependabot-automerge.yml](.github/workflows/dependabot-automerge.yml), but GitHub repository permissions must allow workflows to create and approve pull requests.
-
-To enable it:
-
-1. Open https://github.com/<user>/<repository>/settings/actions
-2. Go to Workflow permissions
-3. Enable Allow GitHub Actions to create and approve pull requests
-4. Save changes
-
-Without this setting, the workflow can run but will not be allowed to auto-merge Dependabot PRs.
-
-### 7) Automatic template config sync
-
-This template includes [.github/workflows/sync-template-files.yml](.github/workflows/sync-template-files.yml).
-
-Behavior:
-
-- Trigger: push to `main` (excluding pushes that only touch `templates/**`) or manual run with `workflow_dispatch`.
-- Action: inspects changed root files and performs a 3-way merge into `templates/*/<same-path>` only when that target file already exists.
-- Output: creates and pushes a `sync/*` branch with the updates, then opens a PR to `main`.
-- Safety: if no effective changes are produced, no PR is created; if a merge conflict appears, the workflow fails for manual resolution.
-
-Verification and diagnostics:
-
-- On conflict failure, the workflow emits `conflict-targets` output and writes a `Sync diagnostics` section to the step summary.
-- To inspect failed runs quickly, use `gh run view <run-id> --log-failed`.
-
-## Sensible defaults checklist
-
-This template intentionally defaults to:
-
-- Containerized development first.
-- Agent-assisted development with explicit permissions.
-- Reproducible skill and tool setup.
-- Automated dependency upkeep.
-- Security scanning hooks ready to activate.
-- Logs and specs wired for iterative AI loops.
-
-## Quick start
-
-1. Use this repository as a template and create your project repo.
-2. Update the devcontainer name and this README for your project identity.
-3. Open in VS Code Dev Containers / Codespaces.
-4. Let post-create tasks complete.
-5. Configure optional secrets and environment variables:
-   - DATACOMMONS_API_KEY for Data Commons MCP
-   - SEMGREP_APP_TOKEN for Semgrep workflow
-6. Adjust AGENTS.md and OpenCode permissions to match your workflow and risk tolerance.
-
-## Skills update marketplace action usage
-
-Use the published action from workflow jobs with `uses: iyaki/skills-update@v1`.
-
-Update-only run:
+### Update only (no writes)
 
 ```yaml
 - name: Update skills files only
@@ -151,10 +91,22 @@ Update-only run:
     create-pr: false
 ```
 
-Commit and pull request run:
+### Create commit only
 
 ```yaml
-- name: Update skills and open PR
+- name: Update skills and commit
+  id: skills
+  uses: iyaki/skills-update@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    create-commit: true
+    create-pr: false
+```
+
+### Rolling PR maintenance
+
+```yaml
+- name: Update skills and open/update PR
   id: skills
   uses: iyaki/skills-update@v1
   with:
@@ -162,80 +114,77 @@ Commit and pull request run:
     create-commit: true
     create-pr: true
     pr-generate-commit: true
+    pr-branch: chore/skills-update
+    pr-title: "chore(skills): update installed skills"
+    pr-labels: chore,automation
 ```
 
-## Marketplace action release operations
+### Restrict writable paths
 
-Use `.github/workflows/release-marketplace-action.yml` to publish immutable `vX.Y.Z` tags and move the `v1` major alias.
+```yaml
+- name: Update skills with strict path policy
+  id: skills
+  uses: iyaki/skills-update@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    add-paths: skills-lock.json,.agents/skills/**
+    ignore-paths: .agents/.skill-lock.json
+```
 
-Pre-release checks:
+## Permissions
 
-1. Ensure the repository default branch is green.
-2. Trigger `.github/workflows/smoke-marketplace-action.yml` with `scenario=all` and confirm success.
-3. Verify workflow contract checks pass locally:
+- Minimum for update-only runs: `contents: read`
+- For commit and PR stages: `contents: write`
+- For PR creation/labeling: `pull-requests: write`
+
+Example:
+
+```yaml
+permissions:
+  contents: write
+  pull-requests: write
+```
+
+## Behavior notes
+
+- The update stage always runs.
+- Changed files are split into `allowed`, `ignored`, and `blocked` buckets.
+- Any blocked file change fails the run before commit/PR stages.
+- Ignored files do not fail the run and are excluded from write stages.
+- If `create-pr=true` and no commit exists, PR stage can create one when `pr-generate-commit=true`.
+
+## Security and safety
+
+- Keep `add-paths` narrow and explicit.
+- Avoid broad globs that could permit unintended writes.
+- Use GitHub-provided `GITHUB_TOKEN` unless you need custom scopes.
+- Review generated pull requests before merge.
+
+## Verification and diagnostics
+
+- Run the runtime test suite locally:
 
 ```sh
 bash scripts/test-run-skill-update.sh
+```
+
+- Run workflow contract checks locally:
+
+```sh
 bash scripts/test-marketplace-workflows.sh
 ```
 
-Release steps:
-
-1. Open the Actions tab and run `release marketplace action`.
-2. Set `release-tag` using `vX.Y.Z` format.
-3. Confirm the workflow creates the immutable release tag and updates `v1`.
-4. Verify release artifacts at:
-   - `https://github.com/<owner>/<repo>/releases/tag/vX.Y.Z`
-   - `https://github.com/<owner>/<repo>/releases/tag/v1`
-
-Rollback strategy:
-
-1. Do not retag the immutable `vX.Y.Z` release.
-2. Move `v1` to the last known-good release tag:
+- Inspect failed workflow logs:
 
 ```sh
-git fetch --tags origin
-git tag -f v1 <previous-vX.Y.Z>
-git push origin refs/tags/v1 --force
+gh run view <run-id> --log-failed
 ```
 
-3. Open a corrective pull request for root-cause fixes before publishing the next semver tag.
+## Versioning
 
-## Optional project setup paths
+- Use `@v1` for stable major-version updates.
+- Pin to a full tag (`@vX.Y.Z`) when you need immutable behavior for regulated environments.
 
-Scaffolding folders are provided under templates/:
+## License
 
-- go/
-- javascript/
-- php/
-
-You can add your own starter files, scripts, and language-specific conventions there.
-
-To apply one of these stacks into an existing repository, use:
-
-```sh
-scripts/stack-setup.sh <template>
-```
-
-Stack guides:
-
-- go: `templates/go/README.md`
-- javascript: `templates/javascript/README.md`
-- php: `templates/php/README.md`
-
-## Recommended first customizations
-
-- Rename the devcontainer project.
-- Tailor AGENTS.md to your code review and coding standards.
-- Configure lefthook rules with lint/test checks relevant to your stack.
-- Enable additional CI workflows (tests, lint, build, release).
-- Add a TDD-focused skill if your workflow relies on test-first development.
-
-## Reference links
-
-- OpenCode: https://opencode.ai/
-- Ralph: https://github.com/iyaki/ralph
-- Dependabot options: https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-- Devcontainer Dependabot support: https://containers.dev/guide/dependabot
-- Data Commons API keys: https://apikeys.datacommons.org/
-- Semgrep CI: https://semgrep.dev/docs/semgrep-ci/
+MIT
