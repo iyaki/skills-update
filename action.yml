@@ -2,6 +2,10 @@ name: Skills Update Action
 description: Update repository skills and optionally create commit and pull request artifacts.
 author: iyaki
 
+branding:
+  icon: 'book-open'
+  color: 'orange'
+
 inputs:
   github-token:
     description: GitHub token used for repository and pull request write operations.
