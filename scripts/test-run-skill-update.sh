@@ -35,6 +35,14 @@ assert_contains_line() {
 	fi
 }
 
+assert_contains_text() {
+	local needle="$1"
+	local file="$2"
+	if ! grep -Fq "$needle" "$file"; then
+		fail "Expected output text '$needle' in $file"
+	fi
+}
+
 assert_not_contains_key() {
 	local key="$1"
 	local file="$2"
@@ -120,6 +128,10 @@ test_rejects_path_traversal_in_policy_inputs() {
 	local workdir
 	workdir=$(mktemp -d)
 	local outputs="$workdir/outputs.txt"
+	local stdout_file
+	stdout_file=$(mktemp)
+	local stderr_file
+	stderr_file=$(mktemp)
 	setup_repo "$workdir"
 
 	set +e
@@ -132,13 +144,16 @@ test_rejects_path_traversal_in_policy_inputs() {
 		"$outputs" \
 		"" \
 		"chore(skills): update installed skills" \
-		"../skills-lock.json,.agents/skills/**"
+		"../skills-lock.json,.agents/skills/**" \
+		>"$stdout_file" 2>"$stderr_file"
 	local exit_code=$?
 	set -e
 
 	if [[ "$exit_code" -eq 0 ]]; then
 		fail "Runtime should fail when add-paths contains path traversal patterns"
 	fi
+
+	assert_contains_text "Path policy entries must not contain path traversal segments" "$stderr_file"
 }
 
 setup_origin_remote() {
@@ -224,10 +239,24 @@ if [[ "\$2" != "skills@${expected_version}" ]]; then
 	exit 1
 fi
 
-if [[ "\$3" != "update" || "\$4" != "-p" || "\$5" != "-y" ]]; then
+case "\${3:-}" in
+experimental_install)
+	if [[ "\${4:-}" != "-y" ]]; then
+		echo "unexpected update command args" >&2
+		exit 1
+	fi
+	;;
+update)
+	if [[ "\${4:-}" != "-p" || "\${5:-}" != "-y" ]]; then
+		echo "unexpected update command args" >&2
+		exit 1
+	fi
+	;;
+*)
 	echo "unexpected update command args" >&2
 	exit 1
-fi
+	;;
+esac
 
 printf '{"updated":true}\n' > skills-lock.json
 EOF
@@ -320,16 +349,23 @@ test_blocked_path_fails() {
 	local workdir
 	workdir=$(mktemp -d)
 	local outputs="$workdir/outputs.txt"
+	local stdout_file
+	stdout_file=$(mktemp)
+	local stderr_file
+	stderr_file=$(mktemp)
 	setup_repo "$workdir"
 
 	set +e
-	run_runtime "$workdir" "bash -lc 'printf \"changed\\n\" >> README.md'" "true" "false" "true" "$outputs"
+	run_runtime "$workdir" "bash -lc 'printf \"changed\\n\" >> README.md'" "true" "false" "true" "$outputs" >"$stdout_file" 2>"$stderr_file"
 	local exit_code=$?
 	set -e
 
 	if [[ "$exit_code" -eq 0 ]]; then
 		fail "Runtime should fail when blocked paths are modified"
 	fi
+
+	assert_contains_text "Blocked path changes detected:" "$stderr_file"
+	assert_contains_text "update stage failed due to blocked path changes" "$stderr_file"
 }
 
 test_ignored_only_change_is_non_failing() {
@@ -371,16 +407,22 @@ test_pr_stage_fails_without_commit_when_generation_disabled() {
 	local workdir
 	workdir=$(mktemp -d)
 	local outputs="$workdir/outputs.txt"
+	local stdout_file
+	stdout_file=$(mktemp)
+	local stderr_file
+	stderr_file=$(mktemp)
 	setup_repo "$workdir"
 
 	set +e
-	run_runtime "$workdir" "bash -lc 'printf \"{\\\"updated\\\":true}\\n\" > skills-lock.json'" "false" "true" "false" "$outputs"
+	run_runtime "$workdir" "bash -lc 'printf \"{\\\"updated\\\":true}\\n\" > skills-lock.json'" "false" "true" "false" "$outputs" >"$stdout_file" 2>"$stderr_file"
 	local exit_code=$?
 	set -e
 
 	if [[ "$exit_code" -eq 0 ]]; then
 		fail "Runtime should fail when pull request stage cannot create missing commit"
 	fi
+
+	assert_contains_text "pull request stage requires commit" "$stderr_file"
 }
 
 test_default_update_command_uses_skills_cli_version() {
