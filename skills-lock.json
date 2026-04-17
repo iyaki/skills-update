@@ -11,6 +11,11 @@
       "sourceType": "github",
       "computedHash": "731193d39a9977a3b65af35c126ab701101f728a4e086d69c70cf947db1badcf"
     },
+    "create-readme": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "d0ece1b2164ce1376e4ab6e98d6ac079df3a2a94f5f02224362b6a1ce2516ae9"
+    },
     "shell-command": {
       "source": "iyaki/opencode-base-template",
       "sourceType": "github",
