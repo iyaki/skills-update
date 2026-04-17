@@ -4,7 +4,7 @@
     "adr-skill": {
       "source": "vercel/ai",
       "sourceType": "github",
-      "computedHash": "600a3d6e0e071c0987ce834ffc0432ef8db817a516594deae68ebe59ccc0dfdb"
+      "computedHash": "d0da1d9cc3e60e0406e2b473db7bdda0214785087ed4b39144274bdf13963f64"
     },
     "code-search": {
       "source": "iyaki/opencode-base-template",
@@ -19,7 +19,7 @@
     "skill-creator": {
       "source": "anthropics/skills",
       "sourceType": "github",
-      "computedHash": "a096b9af85c9d954374ebe3f7a23b5b7737ed3f35fe2a8f5893742c4e00dba1c"
+      "computedHash": "b122f4d1e91aa1d83027e050b5b37c3156203ee85458d7b1360bc48167c9e02a"
     },
     "spec-creator": {
       "source": "iyaki/ralph",
