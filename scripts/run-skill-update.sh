@@ -156,6 +156,13 @@ create_commit_from_allowed() {
 		fail "No staged files found for commit creation"
 	fi
 
+	if [[ -z "$(git config user.email)" ]]; then
+		git config user.email "github-actions[bot]@users.noreply.github.com"
+	fi
+	if [[ -z "$(git config user.name)" ]]; then
+		git config user.name "github-actions[bot]"
+	fi
+
 	git commit -m "$commit_message" -- "${allowed_ref[@]}" >/dev/null
 	git rev-parse HEAD
 }
