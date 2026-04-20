@@ -6,13 +6,13 @@
 [![Smoke Tests](https://img.shields.io/github/actions/workflow/status/iyaki/skills-update/smoke-marketplace-action.yml?label=smoke%20tests)](https://github.com/iyaki/skills-update/actions/workflows/smoke-marketplace-action.yml)
 [![Latest Release](https://img.shields.io/github/v/release/iyaki/skills-update?label=latest%20release)](https://github.com/iyaki/skills-update/releases)
 
-Keep repository agent skills up to date with one GitHub Action.
+Keep your repository's agent skills up to date with a single GitHub Action.
 
 [Get started](#get-started) • [How it works](#how-it-works) • [Inputs](#inputs) • [Outputs](#outputs) • [Recipes](#recipes) • [Validation](#validation)
 
 </div>
 
-`iyaki/skills-update` runs a non-interactive skills update command in CI, enforces a path safety policy, and can create a commit and a single rolling pull request for review.
+`iyaki/skills-update` wraps [Vercel's Skills CLI](https://github.com/vercel-labs/skills), runs a non-interactive update command in CI, enforces a path safety policy, and can create a commit and a single rolling pull request for review.
 
 > [!IMPORTANT]
 > The action fails closed when the update command changes files outside your allowlisted paths.
@@ -26,7 +26,7 @@ Keep repository agent skills up to date with one GitHub Action.
 - Restricts writes to explicit paths instead of trusting every changed file.
 - Supports read-only, commit-only, and rolling-PR workflows.
 - Exposes simple outputs for downstream workflow branching.
-- Keeps approval and merge decisions with maintainers.
+- Keeps approval and merge decisions in maintainers' hands.
 
 ## Get started
 
@@ -68,8 +68,8 @@ You can omit `github-token` if the default `github.token` has the permissions yo
 1. Runs the update stage in `working-directory`.
 2. Collects changed files and classifies them as `allowed`, `ignored`, or `blocked`.
 3. Fails the run before any write stage if a blocked path changed.
-4. Creates one commit when `create-commit=true` and allowed changes exist.
-5. Creates or updates one rolling pull request when `create-pr=true`.
+4. Creates a commit when `create-commit=true` and allowed changes exist.
+5. Creates or updates a single rolling pull request when `create-pr=true`.
 
 ### Path policy
 
@@ -110,13 +110,13 @@ All inputs are optional.
 
 ### Pull request
 
-| Input                | Default                                  | Description                                                      |
-| -------------------- | ---------------------------------------- | ---------------------------------------------------------------- |
-| `create-pr`          | `true`                                   | Enables the pull request stage.                                  |
-| `base-branch`        | repository default                       | Target branch for the PR.                                        |
-| `pr-branch`          | `chore/skills-update`                    | Branch used for the rolling pull request.                        |
-| `pr-title`           | `chore(skills): update installed skills` | Title used when creating or updating the pull request.           |
-| `pr-labels`          | `chore,automation`                       | Comma-separated labels applied to the pull request.              |
+| Input         | Default                                  | Description                                            |
+| ------------- | ---------------------------------------- | ------------------------------------------------------ |
+| `create-pr`   | `true`                                   | Enables the pull request stage.                        |
+| `base-branch` | repository default                       | Target branch for the PR.                              |
+| `pr-branch`   | `chore/skills-update`                    | Branch used for the rolling pull request.              |
+| `pr-title`    | `chore(skills): update installed skills` | Title used when creating or updating the pull request. |
+| `pr-labels`   | `chore,automation`                       | Comma-separated labels applied to the pull request.    |
 
 ## Outputs
 
