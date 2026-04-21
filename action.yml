@@ -112,4 +112,4 @@ runs:
         DISABLE_TELEMETRY: "1"
         DO_NOT_TRACK: "1"
         TZ: UTC
-      run: bash scripts/run-skill-update.sh
+      run: bash "$GITHUB_ACTION_PATH/scripts/run-skill-update.sh"
