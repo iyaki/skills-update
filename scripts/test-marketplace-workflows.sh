@@ -5,7 +5,6 @@ ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 SMOKE_WORKFLOW="$ROOT_DIR/.github/workflows/smoke-marketplace-action.yml"
 RELEASE_WORKFLOW="$ROOT_DIR/.github/workflows/release-marketplace-action.yml"
 SECURITY_WORKFLOW="$ROOT_DIR/.github/workflows/security.yml"
-SYNC_WORKFLOW="$ROOT_DIR/.github/workflows/sync-template-files.yml"
 DEPENDABOT_AUTOMERGE_WORKFLOW="$ROOT_DIR/.github/workflows/dependabot-automerge.yml"
 README_FILE="$ROOT_DIR/README.md"
 
@@ -25,7 +24,6 @@ assert_contains() {
 [[ -f "$SMOKE_WORKFLOW" ]] || fail "Missing smoke workflow: $SMOKE_WORKFLOW"
 [[ -f "$RELEASE_WORKFLOW" ]] || fail "Missing release workflow: $RELEASE_WORKFLOW"
 [[ -f "$SECURITY_WORKFLOW" ]] || fail "Missing security workflow: $SECURITY_WORKFLOW"
-[[ -f "$SYNC_WORKFLOW" ]] || fail "Missing sync workflow: $SYNC_WORKFLOW"
 [[ -f "$DEPENDABOT_AUTOMERGE_WORKFLOW" ]] || fail "Missing dependabot automerge workflow: $DEPENDABOT_AUTOMERGE_WORKFLOW"
 [[ -f "$README_FILE" ]] || fail "Missing README: $README_FILE"
 
@@ -56,9 +54,6 @@ assert_contains "name: auto-merge dependencies" "$DEPENDABOT_AUTOMERGE_WORKFLOW"
 assert_contains "name: Auto-merge Dependabot PRs" "$DEPENDABOT_AUTOMERGE_WORKFLOW"
 assert_contains "uses: fastify/github-action-merge-dependabot@v3.12.0" "$DEPENDABOT_AUTOMERGE_WORKFLOW"
 
-assert_contains "Merge conflicts detected while syncing template files:" "$SYNC_WORKFLOW"
-assert_contains "conflict-targets<<EOF" "$SYNC_WORKFLOW"
-assert_contains "### Sync diagnostics" "$SYNC_WORKFLOW"
 assert_contains "Verification and diagnostics:" "$README_FILE"
 assert_contains "gh run view <run-id> --log-failed" "$README_FILE"
 
