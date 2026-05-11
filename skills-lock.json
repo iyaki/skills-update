@@ -5,7 +5,7 @@
       "source": "vercel/ai",
       "sourceType": "github",
       "skillPath": "skills/adr-skill/SKILL.md",
-      "computedHash": "d0da1d9cc3e60e0406e2b473db7bdda0214785087ed4b39144274bdf13963f64"
+      "computedHash": "10a3b51ce33cb5d66920283ff58879e364409efde0afd97f09e3631307a116fa"
     },
     "code-search": {
       "source": "iyaki/opencode-base-template",
