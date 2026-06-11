@@ -8,6 +8,7 @@ SCRIPTPATH="$(CDPATH= cd "$(dirname "$SCRIPT_PATH")" 2>/dev/null && pwd -P)"
 
 mkdir -p ~/.local/share/opencode
 mkdir -p ~/.local/state/opencode
+mkdir -p ~/.omp
 mkdir -p ~/.config/gh/
 
 ENVFILE_PATH="$SCRIPTPATH/../.env"

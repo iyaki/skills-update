@@ -20,6 +20,11 @@
       "resolved": "ghcr.io/iyaki/devcontainer-features/lefthook@sha256:fb888f615f4eb7f3df34ab020b0ededed229ab391af8b03a4007f8fdedc7241a",
       "integrity": "sha256:fb888f615f4eb7f3df34ab020b0ededed229ab391af8b03a4007f8fdedc7241a"
     },
+    "ghcr.io/iyaki/devcontainer-features/oh-my-pi:": {
+      "version": "1.0.0",
+      "resolved": "ghcr.io/iyaki/devcontainer-features/oh-my-pi@sha256:8d6fbcf27a0e67ae24252200520f5ef3a8c4dd46a3442032ecee110af741b272",
+      "integrity": "sha256:8d6fbcf27a0e67ae24252200520f5ef3a8c4dd46a3442032ecee110af741b272"
+    },
     "ghcr.io/iyaki/devcontainer-features/ralph:": {
       "version": "1.0.1",
       "resolved": "ghcr.io/iyaki/devcontainer-features/ralph@sha256:8dc4074272d223c3327a5875c05aaff6ea5856e95b55f0b9df661d472b5862f6",
