@@ -13,6 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Auto-merge Dependabot PRs
-        uses: fastify/github-action-merge-dependabot@v3.14.0
+        uses: fastify/github-action-merge-dependabot@v3.15.0
         with:
           target: minor
