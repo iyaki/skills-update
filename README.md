@@ -15,6 +15,7 @@
 
 Keep your repository's AI agent skills automatically up to date—like Dependabot for agent skills. This GitHub Action automates Vercel's Skills CLI updates with safe commit and pull request workflows.
 
+</div>
 
 ## Frequently Asked Questions
 
@@ -46,8 +47,6 @@ Yes. The action implements a "fail-closed" safety model: it rejects any changes 
 Add the workflow to your `.github/workflows` directory with a weekly schedule. Configure your path allowlist and permissions, then let the action handle skills maintenance automatically.
 
 [Get started](#get-started) • [How it works](#how-it-works) • [Inputs](#inputs) • [Outputs](#outputs) • [Recipes](#recipes) • [Validation](#validation)
-
-</div>
 
 ## How does the skills-update action work?
 
