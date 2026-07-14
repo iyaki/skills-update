@@ -1,10 +1,12 @@
-name: Skills Update Action
-description: Update repository skills and optionally create commit and pull request artifacts.
+name: 'Skills Update: AI Agent Skills Automation'
+description: 'Automatically update repository agent skills from Vercel Skills CLI, create commits and pull requests with path safety policies. AI agent automation for GitHub repositories.'
 author: iyaki
 
 branding:
   icon: 'book-open'
   color: 'orange'
+  # GitHub Marketplace Categories (primary: Continuous integration, secondary: Code review)
+  # Optimizes discoverability in GitHub Marketplace browsing and search
 
 inputs:
   github-token:
